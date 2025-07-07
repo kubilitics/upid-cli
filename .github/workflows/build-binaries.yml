@@ -41,6 +41,7 @@ jobs:
           pip install pyinstaller rich click requests pyyaml
 
       - name: Build binary
+        shell: bash
         run: |
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             pyinstaller --onefile --name upid-windows-x86_64 upid_main.py
@@ -54,6 +55,7 @@ jobs:
           fi
 
       - name: Test binary
+        shell: bash
         run: |
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             ./dist/upid-windows-x86_64.exe --help
@@ -68,4 +70,4 @@ jobs:
           files: |
             dist/${{ matrix.artifact }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}  # Use your PAT secret here
