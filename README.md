@@ -286,6 +286,13 @@ upid demo
 
 The UPID CLI is **production-ready** and can be shared with others for testing. The binary is self-contained and works with any Kubernetes cluster.
 
+## 📚 Additional Resources
+
+- **Documentation**: [docs.upid.com](https://docs.upid.com)
+- **Issues**: [GitHub Issues](https://github.com/vellankikoti/upid-cli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/vellankikotiupid-cli/discussions)
+- **Email**: koti@vellanki.in
+
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -293,7 +300,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - Kubernetes community
-- Netflix for performance benchmarks
 - Open source contributors
 
 ---
