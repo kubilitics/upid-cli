@@ -48,7 +48,8 @@ jobs:
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
             pyinstaller --onefile --name upid-darwin-arm64 upid_main.py
           elif [ "${{ matrix.arch }}" = "aarch64" ]; then
-            sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
+            (sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu) || \
+            (sudo yum install -y gcc-aarch64-linux-gnu)
             pyinstaller --onefile --name upid-linux-arm64 upid_main.py
           else
             pyinstaller --onefile --name upid-linux-x86_64 upid_main.py
