@@ -1,187 +1,131 @@
 #!/usr/bin/env python3
 """
-Binary build script for UPID CLI
-Creates standalone executables similar to kubectl
+Build standalone binaries for UPID CLI
+Creates platform-specific binaries like kubectl
 """
+
 import os
 import sys
-import shutil
 import subprocess
 import platform
 from pathlib import Path
+from rich.console import Console
+from rich.table import Table
+from rich.panel import Panel
 
+console = Console()
 
-def run_command(cmd, description):
-    """Run a command and handle errors"""
-    print(f"\n🔄 {description}...")
-    print(f"Command: {' '.join(cmd)}")
+class BinaryBuilder:
+    """Build standalone binaries for UPID CLI"""
     
-    try:
-        result = subprocess.run(cmd, check=True, capture_output=True, text=True)
-        print(f"✅ {description} completed successfully")
-        if result.stdout:
-            print(result.stdout)
-        return True
-    except subprocess.CalledProcessError as e:
-        print(f"❌ {description} failed")
-        print(f"Error: {e}")
-        if e.stdout:
-            print(f"stdout: {e.stdout}")
-        if e.stderr:
-            print(f"stderr: {e.stderr}")
-        return False
-
-
-def install_build_dependencies():
-    """Install dependencies for building binaries"""
-    dependencies = [
-        "pyinstaller>=5.0.0",
-        "setuptools>=65.0.0",
-        "wheel>=0.37.0"
-    ]
-    
-    for dep in dependencies:
-        cmd = ["pip", "install", dep]
-        if not run_command(cmd, f"Installing {dep}"):
-            return False
-    return True
-
-
-def create_pyinstaller_spec():
-    """Create PyInstaller spec file for UPID CLI"""
-    spec_content = '''# -*- mode: python ; coding: utf-8 -*-
-
-block_cipher = None
-
-a = Analysis(
-    ['upid/cli.py'],
-    pathex=[],
-    binaries=[],
-    datas=[
-        ('upid/core', 'upid/core'),
-        ('upid/commands', 'upid/commands'),
-        ('upid/services', 'upid/services'),
-    ],
-    hiddenimports=[
-        'click',
-        'rich',
-        'requests',
-        'yaml',
-        'json',
-        'pathlib',
-        'tempfile',
-        'subprocess',
-        'sys',
-        'os',
-        'time',
-        'datetime',
-        'typing',
-        'unittest.mock',
-        'pytest',
-        'testcontainers',
-        'docker',
-        'kubernetes',
-    ],
-    hookspath=[],
-    hooksconfig={},
-    runtime_hooks=[],
-    excludes=[],
-    win_no_prefer_redirects=False,
-    win_private_assemblies=False,
-    cipher=block_cipher,
-    noarchive=False,
-)
-
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
-
-exe = EXE(
-    pyz,
-    a.scripts,
-    a.binaries,
-    a.zipfiles,
-    a.datas,
-    [],
-    name='upid',
-    debug=False,
-    bootloader_ignore_signals=False,
-    strip=False,
-    upx=True,
-    upx_exclude=[],
-    runtime_tmpdir=None,
-    console=True,
-    disable_windowed_traceback=False,
-    argv_emulation=False,
-    target_arch=None,
-    codesign_identity=None,
-    entitlements_file=None,
-    icon='assets/icon.ico' if os.path.exists('assets/icon.ico') else None,
-)
-'''
-    
-    with open('upid.spec', 'w') as f:
-        f.write(spec_content)
-    
-    print("✅ PyInstaller spec file created")
-    return True
-
-
-def build_binary():
-    """Build the binary using PyInstaller"""
-    # Create spec file
-    if not create_pyinstaller_spec():
-        return False
-    
-    # Build binary
-    cmd = ["pyinstaller", "--clean", "upid.spec"]
-    return run_command(cmd, "Building binary with PyInstaller")
-
-
-def build_for_platforms():
-    """Build binaries for multiple platforms"""
-    platforms = {
-        'linux': 'linux',
-        'darwin': 'macos',
-        'win32': 'windows'
-    }
-    
-    current_platform = sys.platform
-    target_platform = platforms.get(current_platform, current_platform)
-    
-    print(f"🎯 Building for platform: {target_platform}")
-    
-    # Build for current platform
-    if not build_binary():
-        return False
-    
-    # Move binary to appropriate location
-    dist_dir = Path("dist")
-    if dist_dir.exists():
-        binary_name = "upid.exe" if target_platform == "windows" else "upid"
-        binary_path = dist_dir / binary_name
+    def __init__(self):
+        self.project_root = Path(__file__).parent
+        self.dist_dir = self.project_root / "dist"
+        self.dist_dir.mkdir(exist_ok=True)
         
-        if binary_path.exists():
-            # Create platform-specific directory
-            platform_dir = Path(f"binaries/{target_platform}")
-            platform_dir.mkdir(parents=True, exist_ok=True)
+    def build_binaries(self):
+        """Build binaries for all supported platforms"""
+        console.print("\n" + "="*80)
+        console.print("[bold blue]🔨 UPID CLI - Binary Builder[/bold blue]")
+        console.print("="*80)
+        
+        # Get current platform
+        current_platform = platform.system().lower()
+        current_arch = platform.machine().lower()
+        
+        console.print(f"[cyan]Current platform: {current_platform} {current_arch}[/cyan]")
+        
+        # Build for current platform
+        self.build_for_platform(current_platform, current_arch)
+        
+        # Optionally build for other platforms
+        if current_platform == "darwin":
+            self.build_for_platform("linux", "x86_64")
+        elif current_platform == "linux":
+            self.build_for_platform("darwin", "x86_64")
+        
+        self.show_results()
+        
+    def build_for_platform(self, platform_name: str, arch: str):
+        """Build binary for specific platform"""
+        console.print(f"\n[bold cyan]Building for {platform_name} {arch}...[/bold cyan]")
+        
+        try:
+            # Set environment variables for cross-compilation
+            env = os.environ.copy()
             
-            # Copy binary
-            target_path = platform_dir / binary_name
-            shutil.copy2(binary_path, target_path)
+            if platform_name == "darwin":
+                env["PYTHONPATH"] = str(self.project_root)
+                target = f"upid-{platform_name}-{arch}"
+            elif platform_name == "linux":
+                env["PYTHONPATH"] = str(self.project_root)
+                target = f"upid-{platform_name}-{arch}"
+            else:
+                target = f"upid-{platform_name}-{arch}"
             
-            # Make executable on Unix systems
-            if target_platform != "windows":
-                os.chmod(target_path, 0o755)
+            # Build command
+            cmd = [
+                sys.executable, "-m", "PyInstaller",
+                "--onefile",
+                "--name", target,
+                "--distpath", str(self.dist_dir),
+                "--workpath", str(self.project_root / "build"),
+                "--specpath", str(self.project_root / "build"),
+                "--clean",
+                "--noconfirm",
+                str(self.project_root / "upid" / "cli.py")
+            ]
             
-            print(f"✅ Binary created: {target_path}")
-            return True
+            # Add platform-specific options
+            if platform_name == "darwin":
+                cmd.extend(["--target-architecture", "universal2"])
+            elif platform_name == "linux":
+                cmd.extend(["--target-architecture", "x86_64"])
+            
+            console.print(f"Running: {' '.join(cmd)}")
+            
+            result = subprocess.run(
+                cmd,
+                env=env,
+                capture_output=True,
+                text=True,
+                timeout=300  # 5 minutes timeout
+            )
+            
+            if result.returncode == 0:
+                binary_path = self.dist_dir / target
+                if platform_name == "windows":
+                    binary_path = binary_path.with_suffix(".exe")
+                
+                if binary_path.exists():
+                    # Make executable on Unix systems
+                    if platform_name != "windows":
+                        os.chmod(binary_path, 0o755)
+                    
+                    size = binary_path.stat().st_size / (1024 * 1024)  # MB
+                    console.print(f"[green]✅ Built {target} ({size:.1f} MB)[/green]")
+                    console.print(f"[green]   Location: {binary_path}[/green]")
+                else:
+                    console.print(f"[red]❌ Binary not found at {binary_path}[/red]")
+            else:
+                console.print(f"[red]❌ Build failed for {platform_name} {arch}[/red]")
+                if result.stderr:
+                    console.print(f"Error: {result.stderr[:200]}...")
+                    
+        except subprocess.TimeoutExpired:
+            console.print(f"[yellow]⚠️  Build timed out for {platform_name} {arch}[/yellow]")
+        except Exception as e:
+            console.print(f"[red]❌ Build error for {platform_name} {arch}: {e}[/red]")
     
-    return False
-
-
-def create_install_script():
-    """Create installation script for the binary"""
-    install_script = '''#!/bin/bash
-# UPID CLI Binary Installer
+    def create_install_script(self):
+        """Create installation script like kubectl"""
+        console.print(f"\n[bold cyan]Creating installation script...[/bold cyan]")
+        
+        install_script = self.project_root / "install.sh"
+        
+        script_content = f"""#!/bin/bash
+# UPID CLI Installation Script
+# Installs UPID CLI like kubectl
 
 set -e
 
@@ -191,246 +135,187 @@ GREEN='\\033[0;32m'
 YELLOW='\\033[1;33m'
 NC='\\033[0m' # No Color
 
-echo -e "${GREEN}🚀 Installing UPID CLI Binary${NC}"
-
 # Detect OS and architecture
-OS=$(uname -s | tr '[:upper:]' '[:lower:]')
-ARCH=$(uname -m)
+OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
+ARCH="$(uname -m | tr '[:upper:]' '[:lower:]')"
 
+# Map architecture
 case $ARCH in
-    x86_64) ARCH="amd64" ;;
+    x86_64) ARCH="x86_64" ;;
+    amd64) ARCH="x86_64" ;;
+    arm64) ARCH="arm64" ;;
     aarch64) ARCH="arm64" ;;
-    armv7l) ARCH="arm" ;;
-    *) ARCH="unknown" ;;
+    *) echo -e "${{RED}}Unsupported architecture: $ARCH${{NC}}" && exit 1 ;;
 esac
 
-echo "Detected OS: $OS, Architecture: $ARCH"
+# Map OS
+case $OS in
+    darwin) OS="darwin" ;;
+    linux) OS="linux" ;;
+    *) echo -e "${{RED}}Unsupported OS: $OS${{NC}}" && exit 1 ;;
+esac
 
-# Determine binary name
+# GitHub release URL
+RELEASE_URL="https://github.com/upid/upid-cli/releases/latest/download"
+BINARY_NAME="upid-$OS-$ARCH"
+
+echo -e "${{GREEN}}Installing UPID CLI...${{NC}}"
+echo -e "${{YELLOW}}OS: $OS, Architecture: $ARCH${{NC}}"
+
+# Download binary
+echo -e "${{YELLOW}}Downloading UPID CLI binary...${{NC}}"
+curl -L -o /tmp/upid "$RELEASE_URL/$BINARY_NAME"
+
+# Make executable
+chmod +x /tmp/upid
+
+# Install to system path
 if [[ "$OS" == "darwin" ]]; then
-    PLATFORM="macos"
-    BINARY_NAME="upid"
-elif [[ "$OS" == "linux" ]]; then
-    PLATFORM="linux"
-    BINARY_NAME="upid"
+    sudo mv /tmp/upid /usr/local/bin/upid
 else
-    echo -e "${RED}❌ Unsupported operating system: $OS${NC}"
-    exit 1
+    sudo mv /tmp/upid /usr/local/bin/upid
 fi
-
-# Check if binary exists
-BINARY_PATH="binaries/$PLATFORM/$BINARY_NAME"
-if [[ ! -f "$BINARY_PATH" ]]; then
-    echo -e "${RED}❌ Binary not found: $BINARY_PATH${NC}"
-    echo "Please build the binary first using: python build_binary.py"
-    exit 1
-fi
-
-# Determine installation directory
-if [[ "$EUID" -eq 0 ]]; then
-    # Root installation
-    INSTALL_DIR="/usr/local/bin"
-    echo -e "${YELLOW}Installing system-wide (requires sudo)${NC}"
-else
-    # User installation
-    INSTALL_DIR="$HOME/.local/bin"
-    mkdir -p "$INSTALL_DIR"
-    echo -e "${YELLOW}Installing to user directory: $INSTALL_DIR${NC}"
-fi
-
-# Install binary
-echo "Installing UPID CLI to $INSTALL_DIR..."
-cp "$BINARY_PATH" "$INSTALL_DIR/upid"
-chmod +x "$INSTALL_DIR/upid"
-
-# Add to PATH if not already there
-if [[ ":$PATH:" != *":$INSTALL_DIR:"* ]]; then
-    echo -e "${YELLOW}Adding $INSTALL_DIR to PATH...${NC}"
-    
-    if [[ "$SHELL" == *"zsh"* ]]; then
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-        echo -e "${GREEN}Added to ~/.zshrc${NC}"
-    elif [[ "$SHELL" == *"bash"* ]]; then
-        echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.bashrc
-        echo -e "${GREEN}Added to ~/.bashrc${NC}"
-    else
-        echo -e "${YELLOW}Please add $INSTALL_DIR to your PATH manually${NC}"
-    fi
-fi
-
-echo -e "${GREEN}✅ UPID CLI installed successfully!${NC}"
-echo -e "${GREEN}Usage: upid --help${NC}"
 
 # Verify installation
 if command -v upid &> /dev/null; then
-    echo -e "${GREEN}✅ Installation verified!${NC}"
-    upid --version
+    echo -e "${{GREEN}}✅ UPID CLI installed successfully!${{NC}}"
+    echo -e "${{GREEN}}Version: $(upid --version)${{NC}}"
+    echo -e "${{YELLOW}}Run 'upid --help' to get started${{NC}}"
 else
-    echo -e "${YELLOW}⚠️  Please restart your terminal or run: source ~/.bashrc${NC}"
+    echo -e "${{RED}}❌ Installation failed${{NC}}"
+    exit 1
 fi
-'''
+"""
+        
+        with open(install_script, 'w') as f:
+            f.write(script_content)
+        
+        # Make executable
+        os.chmod(install_script, 0o755)
+        
+        console.print(f"[green]✅ Created installation script: {install_script}[/green]")
     
-    with open('install.sh', 'w') as f:
-        f.write(install_script)
-    
-    # Make executable
-    os.chmod('install.sh', 0o755)
-    print("✅ Installation script created: install.sh")
+    def create_windows_installer(self):
+        """Create Windows installer script"""
+        console.print(f"\n[bold cyan]Creating Windows installer...[/bold cyan]")
+        
+        install_ps1 = self.project_root / "install.ps1"
+        
+        script_content = f"""# UPID CLI Windows Installation Script
+# Run with: powershell -ExecutionPolicy Bypass -File install.ps1
 
-
-def create_windows_installer():
-    """Create Windows installer script"""
-    install_bat = '''@echo off
-REM UPID CLI Binary Installer for Windows
-
-echo 🚀 Installing UPID CLI Binary
-
-REM Check if running as administrator
-net session >nul 2>&1
-if %errorLevel% == 0 (
-    echo Installing system-wide...
-    set "INSTALL_DIR=C:\\Windows\\System32"
-) else (
-    echo Installing to user directory...
-    set "INSTALL_DIR=%USERPROFILE%\\AppData\\Local\\Microsoft\\WinGet\\Packages"
-    if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
+param(
+    [string]$Version = "latest"
 )
 
-REM Copy binary
-if exist "binaries\\windows\\upid.exe" (
-    copy "binaries\\windows\\upid.exe" "%INSTALL_DIR%\\upid.exe"
-    echo ✅ UPID CLI installed successfully!
-    echo Usage: upid --help
-) else (
-    echo ❌ Binary not found: binaries\windows\upid.exe
-    echo Please build the binary first using: python build_binary.py
-    pause
-    exit /b 1
-)
+# Colors for output
+$Red = "\\033[0;31m"
+$Green = "\\033[0;32m"
+$Yellow = "\\033[1;33m"
+$NC = "\\033[0m"
 
-echo.
-echo Installation complete!
-echo You can now use: upid --help
-pause
-'''
+Write-Host "Installing UPID CLI..." -ForegroundColor Green
+
+# Detect architecture
+$Arch = if ([Environment]::Is64BitOperatingSystem) {{ "x86_64" }} else {{ "x86" }}
+
+# GitHub release URL
+$ReleaseUrl = "https://github.com/upid/upid-cli/releases/latest/download"
+$BinaryName = "upid-windows-$Arch.exe"
+
+Write-Host "Architecture: $Arch" -ForegroundColor Yellow
+
+# Download binary
+Write-Host "Downloading UPID CLI binary..." -ForegroundColor Yellow
+$TempPath = "$env:TEMP\\upid.exe"
+Invoke-WebRequest -Uri "$ReleaseUrl/$BinaryName" -OutFile $TempPath
+
+# Install to system path
+$InstallPath = "$env:ProgramFiles\\upid\\upid.exe"
+New-Item -ItemType Directory -Force -Path "$env:ProgramFiles\\upid" | Out-Null
+Move-Item -Path $TempPath -Destination $InstallPath -Force
+
+# Add to PATH
+$CurrentPath = [Environment]::GetEnvironmentVariable("PATH", "Machine")
+if ($CurrentPath -notlike "*upid*") {{
+    [Environment]::SetEnvironmentVariable("PATH", "$CurrentPath;$env:ProgramFiles\\upid", "Machine")
+}}
+
+Write-Host "✅ UPID CLI installed successfully!" -ForegroundColor Green
+Write-Host "Please restart your terminal to use 'upid' command" -ForegroundColor Yellow
+"""
+        
+        with open(install_ps1, 'w') as f:
+            f.write(script_content)
+        
+        console.print(f"[green]✅ Created Windows installer: {install_ps1}[/green]")
     
-    with open('install.bat', 'w') as f:
-        f.write(install_bat)
-    
-    print("✅ Windows installer created: install.bat")
-
-
-def create_release_package():
-    """Create release package with binaries and documentation"""
-    import zipfile
-    import tarfile
-    
-    # Create release directory
-    release_dir = Path("release")
-    release_dir.mkdir(exist_ok=True)
-    
-    # Copy binaries
-    binaries_dir = Path("binaries")
-    if binaries_dir.exists():
-        for platform_dir in binaries_dir.iterdir():
-            if platform_dir.is_dir():
-                platform_name = platform_dir.name
-                for binary in platform_dir.glob("*"):
-                    if binary.is_file():
-                        # Create platform-specific release
-                        release_name = f"upid-cli-{platform_name}"
-                        release_path = release_dir / release_name
-                        release_path.mkdir(exist_ok=True)
-                        
-                        # Copy binary
-                        shutil.copy2(binary, release_path / binary.name)
-                        
-                        # Copy documentation
-                        docs = ["README.md", "LICENSE", "CHANGELOG.md"]
-                        for doc in docs:
-                            if Path(doc).exists():
-                                shutil.copy2(doc, release_path)
-                        
-                        # Copy installation scripts
-                        if platform_name == "windows":
-                            shutil.copy2("install.bat", release_path)
-                        else:
-                            shutil.copy2("install.sh", release_path)
-                        
-                        # Create archive
-                        if platform_name == "windows":
-                            with zipfile.ZipFile(f"{release_path}.zip", 'w') as zipf:
-                                for file in release_path.rglob("*"):
-                                    zipf.write(file, file.relative_to(release_path))
-                        else:
-                            with tarfile.open(f"{release_path}.tar.gz", 'w:gz') as tar:
-                                tar.add(release_path, arcname=release_path.name)
-                        
-                        print(f"✅ Created release: {release_path}.zip" if platform_name == "windows" else f"✅ Created release: {release_path}.tar.gz")
-    
-    print("✅ Release packages created in 'release' directory")
-
-
-def create_docker_image():
-    """Create Docker image with the binary"""
-    dockerfile = '''FROM alpine:latest
-
-# Install dependencies
-RUN apk add --no-cache python3 py3-pip
-
-# Copy binary
-COPY binaries/linux/upid /usr/local/bin/upid
-RUN chmod +x /usr/local/bin/upid
-
-# Create symlink for kubectl-style usage
-RUN ln -sf /usr/local/bin/upid /usr/local/bin/kubectl-upid
-
-# Set entrypoint
-ENTRYPOINT ["upid"]
-CMD ["--help"]
-'''
-    
-    with open('Dockerfile.binary', 'w') as f:
-        f.write(dockerfile)
-    
-    print("✅ Dockerfile created: Dockerfile.binary")
-
+    def show_results(self):
+        """Show build results"""
+        console.print("\n" + "="*80)
+        console.print("[bold blue]📊 Binary Build Results[/bold blue]")
+        console.print("="*80)
+        
+        # List built binaries
+        binaries = list(self.dist_dir.glob("upid-*"))
+        
+        if binaries:
+            table = Table(title="Built Binaries", box=box.ROUNDED)
+            table.add_column("Binary", style="cyan")
+            table.add_column("Size", style="green")
+            table.add_column("Platform", style="yellow")
+            
+            for binary in binaries:
+                size_mb = binary.stat().st_size / (1024 * 1024)
+                platform_name = binary.name.replace("upid-", "").replace(".exe", "")
+                
+                table.add_row(
+                    binary.name,
+                    f"{size_mb:.1f} MB",
+                    platform_name
+                )
+            
+            console.print(table)
+            
+            # Summary
+            total_size = sum(b.stat().st_size for b in binaries) / (1024 * 1024)
+            
+            summary_panel = Panel(
+                f"Total Binaries: {len(binaries)}\n"
+                f"Total Size: {total_size:.1f} MB\n"
+                f"Location: {self.dist_dir}",
+                title="[bold blue]Build Summary[/bold blue]",
+                border_style="blue"
+            )
+            
+            console.print(summary_panel)
+            
+            # Installation instructions
+            console.print("\n[bold cyan]📋 Installation Instructions[/bold cyan]")
+            console.print("1. Download the appropriate binary for your platform")
+            console.print("2. Make it executable: chmod +x upid-<platform>")
+            console.print("3. Move to PATH: sudo mv upid-<platform> /usr/local/bin/upid")
+            console.print("4. Test: upid --help")
+            
+        else:
+            console.print("[red]❌ No binaries were built successfully[/red]")
+        
+        console.print("\n" + "="*80)
 
 def main():
-    """Main build function"""
-    print("🔨 UPID CLI Binary Builder")
-    print("=" * 40)
-    
-    # Install build dependencies
-    if not install_build_dependencies():
-        print("❌ Failed to install build dependencies")
-        return False
-    
-    # Build binary
-    if not build_for_platforms():
-        print("❌ Failed to build binary")
-        return False
-    
-    # Create installation scripts
-    create_install_script()
-    create_windows_installer()
-    
-    # Create release packages
-    create_release_package()
-    
-    # Create Docker image
-    create_docker_image()
-    
-    print("\n🎉 Binary build completed successfully!")
-    print("\n📦 Available outputs:")
-    print("  - Binaries: binaries/")
-    print("  - Installation scripts: install.sh, install.bat")
-    print("  - Release packages: release/")
-    print("  - Docker image: Dockerfile.binary")
-    
-    return True
+    """Main binary builder"""
+    try:
+        builder = BinaryBuilder()
+        builder.build_binaries()
+        builder.create_install_script()
+        builder.create_windows_installer()
+        
+    except KeyboardInterrupt:
+        console.print("\n[yellow]⚠️  Build interrupted by user[/yellow]")
+        sys.exit(1)
+    except Exception as e:
+        console.print(f"\n[red]❌ Build failed: {e}[/red]")
+        sys.exit(1)
 
-
-if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1) 
+if __name__ == '__main__':
+    main() 

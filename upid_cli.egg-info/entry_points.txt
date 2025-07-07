@@ -1,2 +1,2 @@
 [console_scripts]
-upid = upid.cli:cli
+upid = upid.cli:main
