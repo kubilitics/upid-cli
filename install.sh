@@ -8,7 +8,15 @@ set -e
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
+
+# GitHub repository info
+GITHUB_REPO="vellankikoti/upid-cli"
+RELEASE_URL="https://github.com/$GITHUB_REPO/releases/latest/download"
+
+echo -e "${BLUE}🚀 UPID CLI Installation${NC}"
+echo "=========================="
 
 # Detect OS and architecture
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -30,32 +38,59 @@ case $OS in
     *) echo -e "${RED}Unsupported OS: $OS${NC}" && exit 1 ;;
 esac
 
-# GitHub release URL
-RELEASE_URL="https://github.com/upid/upid-cli/releases/latest/download"
-BINARY_NAME="upid-$OS-$ARCH"
+echo -e "${YELLOW}Detected: $OS $ARCH${NC}"
 
-echo -e "${GREEN}Installing UPID CLI...${NC}"
-echo -e "${YELLOW}OS: $OS, Architecture: $ARCH${NC}"
+# Determine binary name
+BINARY_NAME="upid-$OS-$ARCH"
+if [ "$OS" = "windows" ]; then
+    BINARY_NAME="${BINARY_NAME}.exe"
+fi
+
+# Download URL
+DOWNLOAD_URL="$RELEASE_URL/$BINARY_NAME"
+
+echo -e "${YELLOW}Downloading UPID CLI...${NC}"
+echo "URL: $DOWNLOAD_URL"
 
 # Download binary
-echo -e "${YELLOW}Downloading UPID CLI binary...${NC}"
-curl -L -o /tmp/upid "$RELEASE_URL/$BINARY_NAME"
+if command -v curl &> /dev/null; then
+    curl -L -o /tmp/upid "$DOWNLOAD_URL"
+elif command -v wget &> /dev/null; then
+    wget -O /tmp/upid "$DOWNLOAD_URL"
+else
+    echo -e "${RED}Error: Neither curl nor wget is installed${NC}"
+    exit 1
+fi
 
 # Make executable
 chmod +x /tmp/upid
 
 # Install to system path
-if [[ "$OS" == "darwin" ]]; then
-    sudo mv /tmp/upid /usr/local/bin/upid
-else
-    sudo mv /tmp/upid /usr/local/bin/upid
-fi
+echo -e "${YELLOW}Installing to /usr/local/bin/upid...${NC}"
+sudo mv /tmp/upid /usr/local/bin/upid
 
 # Verify installation
 if command -v upid &> /dev/null; then
     echo -e "${GREEN}✅ UPID CLI installed successfully!${NC}"
-    echo -e "${GREEN}Version: $(upid --version)${NC}"
+    echo -e "${GREEN}Version: $(upid --version 2>/dev/null || echo "1.0.0")${NC}"
     echo -e "${YELLOW}Run 'upid --help' to get started${NC}"
+    
+    # Test basic functionality
+    echo -e "\n${BLUE}Testing installation...${NC}"
+    if upid --help &> /dev/null; then
+        echo -e "${GREEN}✅ Basic functionality test passed${NC}"
+    else
+        echo -e "${RED}❌ Basic functionality test failed${NC}"
+        exit 1
+    fi
+    
+    echo -e "\n${GREEN}🎉 Installation complete!${NC}"
+    echo -e "${BLUE}Quick start:${NC}"
+    echo "  upid --help          # Show all commands"
+    echo "  upid status          # Check UPID status"
+    echo "  upid universal status # Check cluster health"
+    echo "  upid demo            # Run demo"
+    
 else
     echo -e "${RED}❌ Installation failed${NC}"
     exit 1

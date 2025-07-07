@@ -1,0 +1,2 @@
+#!/bin/bash
+echo 'Linux x86_64 binary - build with GitHub Actions'
