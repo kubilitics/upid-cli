@@ -11,27 +11,27 @@ Download and install the standalone binary, just like `kubectl`:
 #### Linux/macOS
 ```bash
 # Download and install
-curl -LO https://github.com/your-org/upid-cli/releases/latest/download/upid-linux.tar.gz
+curl -LO https://github.com/vellankikoti/upid-cli/releases/latest/download/upid-linux.tar.gz
 tar -xzf upid-linux.tar.gz
 sudo mv upid /usr/local/bin/
 chmod +x /usr/local/bin/upid
 
 # Or use the installer
-curl -sSL https://raw.githubusercontent.com/your-org/upid-cli/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/vellankikoti/upid-cli/main/install.sh | bash
 ```
 
 #### Windows
 ```powershell
 # Download and extract
-Invoke-WebRequest -Uri "https://github.com/your-org/upid-cli/releases/latest/download/upid-windows.zip" -OutFile "upid-windows.zip"
+Invoke-WebRequest -Uri "https://github.com/vellankikoti/upid-cli/releases/latest/download/upid-windows.zip" -OutFile "upid-windows.zip"
 Expand-Archive -Path "upid-windows.zip" -DestinationPath "."
 # Add to PATH manually or run install.bat
 ```
 
 #### Docker
 ```bash
-docker pull your-org/upid-cli:latest
-docker run --rm your-org/upid-cli upid --help
+docker pull vellankikoti/upid-cli:latest
+docker run --rm vellankikoti/upid-cli upid --help
 ```
 
 ### Python Package Installation
@@ -355,9 +355,9 @@ git push origin feature/new-feature
 ## 🆘 Support
 
 - **Documentation**: [docs.upid.com](https://docs.upid.com)
-- **Issues**: [GitHub Issues](https://github.com/your-org/upid-cli/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/upid-cli/discussions)
-- **Email**: support@upid.com
+- **Issues**: [GitHub Issues](https://github.com/vellankikoti/upid-cli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/vellankikotiupid-cli/discussions)
+- **Email**: koti@vellanki.in
 
 ## 📄 License
 
@@ -366,7 +366,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## 🙏 Acknowledgments
 
 - Kubernetes community
-- Netflix for performance benchmarks
 - Open source contributors
 
 ---
