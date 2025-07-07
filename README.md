@@ -18,6 +18,9 @@ chmod +x /usr/local/bin/upid
 
 # Or use the installer
 curl -sSL https://raw.githubusercontent.com/vellankikoti/upid-cli/main/install.sh | bash
+
+# For Linux users: If binary is not available, build from source
+curl -sSL https://raw.githubusercontent.com/vellankikoti/upid-cli/main/build_linux.sh | bash
 ```
 
 #### Windows
