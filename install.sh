@@ -1,22 +1,16 @@
 #!/bin/bash
 # UPID CLI Installation Script
-# Installs UPID CLI like kubectl
-
 set -e
 
-# Colors for output
+# Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
-
-# GitHub repository info
-GITHUB_REPO="vellankikoti/upid-cli"
-RELEASE_URL="https://github.com/$GITHUB_REPO/releases/latest/download"
+NC='\033[0m'
 
 echo -e "${BLUE}🚀 UPID CLI Installation${NC}"
-echo "=========================="
+echo -e "${BLUE}==========================${NC}"
 
 # Detect OS and architecture
 OS="$(uname -s | tr '[:upper:]' '[:lower:]')"
@@ -40,57 +34,65 @@ esac
 
 echo -e "${YELLOW}Detected: $OS $ARCH${NC}"
 
-# Determine binary name
-BINARY_NAME="upid-$OS-$ARCH"
-if [ "$OS" = "windows" ]; then
-    BINARY_NAME="${BINARY_NAME}.exe"
-fi
-
-# Download URL
-DOWNLOAD_URL="$RELEASE_URL/$BINARY_NAME"
-
-echo -e "${YELLOW}Downloading UPID CLI...${NC}"
-echo "URL: $DOWNLOAD_URL"
-
-# Download binary
-if command -v curl &> /dev/null; then
-    curl -L -o /tmp/upid "$DOWNLOAD_URL"
-elif command -v wget &> /dev/null; then
-    wget -O /tmp/upid "$DOWNLOAD_URL"
+# Check if binary exists locally first
+BINARY_PATH="./dist/upid-$OS-$ARCH"
+if [ -f "$BINARY_PATH" ]; then
+    echo -e "${YELLOW}Using local binary: $BINARY_PATH${NC}"
+    sudo cp "$BINARY_PATH" /usr/local/bin/upid
+    sudo chmod +x /usr/local/bin/upid
 else
-    echo -e "${RED}Error: Neither curl nor wget is installed${NC}"
-    exit 1
+    echo -e "${YELLOW}Downloading UPID CLI...${NC}"
+    
+    # Download from GitHub releases
+    BINARY_NAME="upid-$OS-$ARCH"
+    if [ "$OS" = "windows" ]; then
+        BINARY_NAME="${BINARY_NAME}.exe"
+    fi
+    
+    DOWNLOAD_URL="https://github.com/vellankikoti/upid-cli/releases/latest/download/$BINARY_NAME"
+    echo -e "${YELLOW}URL: $DOWNLOAD_URL${NC}"
+    
+    # Download the binary
+    if curl -L -o "/tmp/$BINARY_NAME" "$DOWNLOAD_URL"; then
+        # Check if downloaded file is actually a binary (not a placeholder)
+        if [ -s "/tmp/$BINARY_NAME" ]; then
+            file_size=$(stat -f%z "/tmp/$BINARY_NAME" 2>/dev/null || stat -c%s "/tmp/$BINARY_NAME" 2>/dev/null || echo 0)
+            if [ "$file_size" -lt 1000 ]; then
+                echo -e "${RED}❌ Downloaded file is too small (${file_size} bytes) - likely a placeholder${NC}"
+                echo -e "${YELLOW}This platform binary is not yet available.${NC}"
+                echo -e "${BLUE}Available options:${NC}"
+                echo -e "1. Build from source: git clone https://github.com/vellankikoti/upid-cli.git && cd upid-cli && python3 build_binary_fixed.py"
+                echo -e "2. Use Docker: docker pull vellankikoti/upid-cli:latest"
+                echo -e "3. Install via pip: pip install upid-cli"
+                exit 1
+            fi
+        fi
+        
+        echo -e "${YELLOW}Installing to /usr/local/bin/upid...${NC}"
+        sudo cp "/tmp/$BINARY_NAME" /usr/local/bin/upid
+        sudo chmod +x /usr/local/bin/upid
+        rm "/tmp/$BINARY_NAME"
+    else
+        echo -e "${RED}❌ Failed to download binary${NC}"
+        echo -e "${YELLOW}Please check your internet connection and try again${NC}"
+        exit 1
+    fi
 fi
-
-# Make executable
-chmod +x /tmp/upid
-
-# Install to system path
-echo -e "${YELLOW}Installing to /usr/local/bin/upid...${NC}"
-sudo mv /tmp/upid /usr/local/bin/upid
 
 # Verify installation
 if command -v upid &> /dev/null; then
     echo -e "${GREEN}✅ UPID CLI installed successfully!${NC}"
-    echo -e "${GREEN}Version: $(upid --version 2>/dev/null || echo "1.0.0")${NC}"
-    echo -e "${YELLOW}Run 'upid --help' to get started${NC}"
     
     # Test basic functionality
-    echo -e "\n${BLUE}Testing installation...${NC}"
+    echo -e "${YELLOW}Testing installation...${NC}"
     if upid --help &> /dev/null; then
         echo -e "${GREEN}✅ Basic functionality test passed${NC}"
+        echo -e "${GREEN}Version: $(upid --version 2>/dev/null || echo '1.0.0')${NC}"
+        echo -e "${YELLOW}Run 'upid --help' to get started${NC}"
     else
         echo -e "${RED}❌ Basic functionality test failed${NC}"
-        exit 1
+        echo -e "${YELLOW}The binary was installed but may not be working correctly${NC}"
     fi
-    
-    echo -e "\n${GREEN}🎉 Installation complete!${NC}"
-    echo -e "${BLUE}Quick start:${NC}"
-    echo "  upid --help          # Show all commands"
-    echo "  upid status          # Check UPID status"
-    echo "  upid universal status # Check cluster health"
-    echo "  upid demo            # Run demo"
-    
 else
     echo -e "${RED}❌ Installation failed${NC}"
     exit 1
