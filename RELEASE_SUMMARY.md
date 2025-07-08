@@ -32,7 +32,7 @@
 
 ## 🚀 **What We Built**
 
-### **1. Complete CLI Framework (47 Commands)**
+### **1. Complete CLI Framework (44 Commands)**
 ```
 🔐 Authentication (6 commands)
 ├── login, logout, status, refresh
@@ -87,7 +87,7 @@
 
 ### **CLI Framework**
 ```python
-# Click-based CLI with 47 commands
+# Click-based CLI with 44 commands
 @click.group()
 @click.version_option(version='1.0.0')
 @click.option('--local', is_flag=True, help='Enable local mode')
@@ -118,12 +118,12 @@ pyinstaller --onefile --name upid upid/cli.py
 
 ### **Market Position**
 - **Enterprise-Ready**: Production-grade Kubernetes optimization
-- **Developer-Friendly**: Intuitive CLI with 47 commands
+- **Developer-Friendly**: Intuitive CLI with 44 commands
 - **Multi-Platform**: Linux, macOS, Windows support
 - **Zero Dependencies**: Standalone binaries
 
 ### **Competitive Advantages**
-- **Comprehensive**: 47 commands vs competitors' limited feature sets
+- **Comprehensive**: 44 commands vs competitors' limited feature sets
 - **Quality**: 94.9% test success rate with 100% core functionality
 - **Performance**: 7.2MB binary size, < 2 second response times
 - **Usability**: Rich terminal UI, comprehensive help system
@@ -139,7 +139,7 @@ pyinstaller --onefile --name upid upid/cli.py
 ## 🎯 **Success Criteria Met**
 
 ### **✅ Technical Requirements**
-- [x] 47 CLI commands implemented
+- [x] 44 CLI commands implemented
 - [x] Multi-platform binary distribution
 - [x] 94.9% test success rate
 - [x] Enterprise-grade error handling

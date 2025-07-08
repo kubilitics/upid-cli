@@ -10,8 +10,8 @@
 
 ## 🚀 What's New
 
-### ✨ **47 Commands Across 8 Categories**
-UPID CLI now provides comprehensive Kubernetes management with 47 commands covering:
+### ✨ **44 Commands Across 8 Categories**
+UPID CLI now provides comprehensive Kubernetes management with 44 commands covering:
 
 - **🔐 Authentication (6 commands)**: Secure access and session management
 - **🏗️ Cluster Management (4 commands)**: Multi-cluster lifecycle management  

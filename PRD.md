@@ -34,7 +34,7 @@ To become the industry standard for Kubernetes optimization, providing enterpris
 ┌─────────────────────────────────────────────────────────────┐
 │                    UPID CLI Platform                       │
 ├─────────────────────────────────────────────────────────────┤
-│  CLI Interface (47 Commands)                              │
+│  CLI Interface (44 Commands)                              │
 │  ├── Authentication & Security                            │
 │  ├── Cluster Management                                   │
 │  ├── Resource Analysis                                    │
@@ -319,7 +319,7 @@ upid --local status
 ## 🔄 Release Strategy
 
 ### Version 1.0.0 (Current)
-- **Core Features**: All 47 commands implemented
+- **Core Features**: All 44 commands implemented
 - **Platforms**: Linux, macOS, Windows
 - **Architectures**: x86_64, ARM64
 - **Focus**: Stability and core functionality
