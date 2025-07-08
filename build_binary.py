@@ -12,6 +12,7 @@ from pathlib import Path
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
+from rich.box import ROUNDED
 
 console = Console()
 
@@ -260,7 +261,7 @@ Write-Host "Please restart your terminal to use 'upid' command" -ForegroundColor
         binaries = list(self.dist_dir.glob("upid-*"))
         
         if binaries:
-            table = Table(title="Built Binaries", box=box.ROUNDED)
+            table = Table(title="Built Binaries", box=ROUNDED)
             table.add_column("Binary", style="cyan")
             table.add_column("Size", style="green")
             table.add_column("Platform", style="yellow")
