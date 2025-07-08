@@ -1,4 +1,4 @@
-# UPID CLI
+# Universal Pod Intelligence Director (UPID CLI)
 
 **Kubernetes Resource Optimization Platform** - Enterprise-grade resource optimization with >99% accuracy and Netflix-level performance.
 
