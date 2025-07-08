@@ -23,17 +23,20 @@ def optimize():
 @click.argument('cluster_id')
 @click.option('--dry-run', '-d', is_flag=True, help='Show recommendations without applying')
 @click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
-def resources(cluster_id, dry_run, format):
+@click.pass_context
+def resources(ctx, cluster_id, dry_run, format):
     """Optimize cluster resources"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         with Progress(
             SpinnerColumn(),
@@ -119,17 +122,20 @@ def resources(cluster_id, dry_run, format):
 @click.argument('cluster_id')
 @click.option('--dry-run', '-d', is_flag=True, help='Show recommendations without applying')
 @click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
-def costs(cluster_id, dry_run, format):
+@click.pass_context
+def costs(ctx, cluster_id, dry_run, format):
     """Optimize cluster costs"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         with Progress(
             SpinnerColumn(),
@@ -216,17 +222,20 @@ def costs(cluster_id, dry_run, format):
 @click.option('--namespace', '-n', help='Target namespace (default: all)')
 @click.option('--dry-run', '-d', is_flag=True, help='Show recommendations without applying')
 @click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
-def zero_pod(cluster_id, namespace, dry_run, format):
+@click.pass_context
+def zero_pod(ctx, cluster_id, namespace, dry_run, format):
     """Optimize using zero-pod scaling"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         with Progress(
             SpinnerColumn(),
@@ -312,17 +321,20 @@ def zero_pod(cluster_id, namespace, dry_run, format):
 @click.argument('cluster_id')
 @click.option('--auto', '-a', is_flag=True, help='Enable automatic optimization')
 @click.option('--schedule', '-s', help='Optimization schedule (cron format)')
-def auto(cluster_id, auto, schedule):
+@click.pass_context
+def auto(ctx, cluster_id, auto, schedule):
     """Configure automatic optimization"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         if auto:
             # Enable auto optimization

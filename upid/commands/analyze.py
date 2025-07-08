@@ -25,17 +25,20 @@ def analyze():
 @click.argument('cluster_id')
 @click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
 @click.option('--detailed', '-d', is_flag=True, help='Show detailed analysis')
-def resources(cluster_id, format, detailed):
+@click.pass_context
+def resources(ctx, cluster_id, format, detailed):
     """Analyze cluster resource usage"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         with Progress(
             SpinnerColumn(),
@@ -159,17 +162,20 @@ def resources(cluster_id, format, detailed):
 @click.argument('cluster_id')
 @click.option('--period', '-p', default='30d', type=click.Choice(['7d', '30d', '90d']), help='Analysis period')
 @click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
-def cost(cluster_id, period, format):
+@click.pass_context
+def cost(ctx, cluster_id, period, format):
     """Analyze cluster costs"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         with Progress(
             SpinnerColumn(),
@@ -264,17 +270,20 @@ def cost(cluster_id, period, format):
 @analyze.command()
 @click.argument('cluster_id')
 @click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
-def performance(cluster_id, format):
+@click.pass_context
+def performance(ctx, cluster_id, format):
     """Analyze cluster performance"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         with Progress(
             SpinnerColumn(),

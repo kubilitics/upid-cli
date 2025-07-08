@@ -28,17 +28,20 @@ def deploy():
 @click.option('--port', '-p', default=80, help='Container port')
 @click.option('--env', '-e', multiple=True, help='Environment variables (key=value)')
 @click.option('--wait', '-w', is_flag=True, help='Wait for deployment to be ready')
-def create(cluster_id, name, namespace, image, replicas, port, env, wait):
+@click.pass_context
+def create(ctx, cluster_id, name, namespace, image, replicas, port, env, wait):
     """Create a new deployment"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         # Prepare deployment data
         deployment_data = {
@@ -83,17 +86,20 @@ def create(cluster_id, name, namespace, image, replicas, port, env, wait):
 @click.argument('cluster_id')
 @click.option('--namespace', '-ns', default='default', help='Namespace')
 @click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
-def list(cluster_id, namespace, format):
+@click.pass_context
+def list(ctx, cluster_id, namespace, format):
     """List deployments"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         with Progress(
             SpinnerColumn(),
@@ -146,17 +152,20 @@ def list(cluster_id, namespace, format):
 @click.argument('deployment_name')
 @click.option('--namespace', '-ns', default='default', help='Namespace')
 @click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
-def get(cluster_id, deployment_name, namespace, format):
+@click.pass_context
+def get(ctx, cluster_id, deployment_name, namespace, format):
     """Get deployment details"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         with Progress(
             SpinnerColumn(),
@@ -208,17 +217,20 @@ def get(cluster_id, deployment_name, namespace, format):
 @click.argument('deployment_name')
 @click.option('--namespace', '-ns', default='default', help='Namespace')
 @click.option('--replicas', '-r', required=True, type=int, help='Number of replicas')
-def scale(cluster_id, deployment_name, namespace, replicas):
+@click.pass_context
+def scale(ctx, cluster_id, deployment_name, namespace, replicas):
     """Scale deployment"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         console.print(f"[yellow]Scaling deployment '{deployment_name}' to {replicas} replicas...[/yellow]")
         
@@ -250,17 +262,20 @@ def scale(cluster_id, deployment_name, namespace, replicas):
 @click.argument('deployment_name')
 @click.option('--namespace', '-ns', default='default', help='Namespace')
 @click.option('--force', '-f', is_flag=True, help='Force deletion without confirmation')
-def delete(cluster_id, deployment_name, namespace, force):
+@click.pass_context
+def delete(ctx, cluster_id, deployment_name, namespace, force):
     """Delete deployment"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         # Confirm deletion
         if not force:

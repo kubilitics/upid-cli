@@ -22,17 +22,20 @@ def cluster():
 @cluster.command()
 @click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
 @click.option('--verbose', '-v', is_flag=True, help='Verbose output')
-def list(format, verbose):
+@click.pass_context
+def list(ctx, format, verbose):
     """List all clusters"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         with Progress(
             SpinnerColumn(),
@@ -87,17 +90,20 @@ def list(format, verbose):
 @cluster.command()
 @click.argument('cluster_id')
 @click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
-def get(cluster_id, format):
+@click.pass_context
+def get(ctx, cluster_id, format):
     """Get detailed information about a cluster"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         with Progress(
             SpinnerColumn(),
@@ -152,17 +158,20 @@ def get(cluster_id, format):
 @click.option('--nodes', default=3, help='Number of nodes')
 @click.option('--node-type', default='t3.medium', help='Node instance type')
 @click.option('--wait', '-w', is_flag=True, help='Wait for cluster creation to complete')
-def create(name, region, platform, nodes, node_type, wait):
+@click.pass_context
+def create(ctx, name, region, platform, nodes, node_type, wait):
     """Create a new cluster"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         # Prepare cluster data
         cluster_data = {
@@ -206,17 +215,20 @@ def create(name, region, platform, nodes, node_type, wait):
 @cluster.command()
 @click.argument('cluster_id')
 @click.option('--force', '-f', is_flag=True, help='Force deletion without confirmation')
-def delete(cluster_id, force):
+@click.pass_context
+def delete(ctx, cluster_id, force):
     """Delete a cluster"""
     try:
-        config = Config()
-        auth_manager = AuthManager(config)
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
         
-        if not auth_manager.is_authenticated():
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
             console.print("[red]✗ Not authenticated. Please login first.[/red]")
             raise click.Abort()
-        
-        api_client = UPIDAPIClient(config, auth_manager)
         
         # Get cluster info for confirmation
         try:

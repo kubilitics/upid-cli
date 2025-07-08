@@ -527,12 +527,31 @@ class UPIDAPIClient:
     def generate_summary_report(self, cluster_id: str, period: str = '30d') -> Dict[str, Any]:
         """Generate comprehensive summary report"""
         if self.local_mode:
+            resources_data = self._get_local_analysis('resources')
+            costs_data = self._get_local_analysis('costs')
+            performance_data = self._get_local_analysis('performance')
+            
             return {
                 'cluster_name': cluster_id,
                 'generated_at': '2024-01-01T00:00:00Z',
-                'resources': self._get_local_analysis('resources'),
-                'costs': self._get_local_analysis('costs'),
-                'performance': self._get_local_analysis('performance'),
+                'resources': {
+                    'cpu': resources_data.get('cpu', {}),
+                    'memory': resources_data.get('memory', {}),
+                    'storage': resources_data.get('storage', {})
+                },
+                'costs': {
+                    'infrastructure': costs_data.get('infrastructure', {}),
+                    'compute': costs_data.get('compute', {}),
+                    'storage': costs_data.get('storage', {}),
+                    'network': costs_data.get('network', {}),
+                    'total_cost': costs_data.get('total_cost', 0.0)
+                },
+                'performance': {
+                    'cpu': performance_data.get('cpu', {}),
+                    'memory': performance_data.get('memory', {}),
+                    'network': performance_data.get('network', {}),
+                    'storage': performance_data.get('storage', {})
+                },
                 'recommendations': []
             }
         
