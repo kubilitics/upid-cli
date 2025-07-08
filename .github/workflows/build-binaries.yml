@@ -3,6 +3,7 @@ name: Build and Release Binaries
 on:
   release:
     types: [published]
+  workflow_dispatch:  # Allow manual triggering
 
 jobs:
   build:
@@ -37,17 +38,25 @@ jobs:
           python -m pip install --upgrade pip
           pip install pyinstaller rich click requests pyyaml
 
+      - name: Install project dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Install project in development mode
+        run: |
+          pip install -e .
+
       - name: Build binary
         run: |
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
-            pyinstaller --onefile --name upid-windows-x86_64 upid_main.py
+            pyinstaller --onefile --name upid-windows-x86_64 --distpath ./dist --workpath ./build --specpath ./build --clean --noconfirm upid/cli.py
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            pyinstaller --onefile --name upid-darwin-arm64 upid_main.py
+            pyinstaller --onefile --name upid-darwin-arm64 --distpath ./dist --workpath ./build --specpath ./build --clean --noconfirm upid/cli.py --target-architecture universal2
           elif [ "${{ matrix.arch }}" = "aarch64" ]; then
             sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
-            pyinstaller --onefile --name upid-linux-arm64 upid_main.py
+            pyinstaller --onefile --name upid-linux-arm64 --distpath ./dist --workpath ./build --specpath ./build --clean --noconfirm upid/cli.py
           else
-            pyinstaller --onefile --name upid-linux-x86_64 upid_main.py
+            pyinstaller --onefile --name upid-linux-x86_64 --distpath ./dist --workpath ./build --specpath ./build --clean --noconfirm upid/cli.py
           fi
 
       - name: Test binary
@@ -59,10 +68,24 @@ jobs:
             ./dist/${{ matrix.artifact }} --help
           fi
 
+      - name: Create release artifacts
+        run: |
+          if [ "${{ matrix.os }}" = "windows-latest" ]; then
+            cd dist
+            zip upid-windows-x86_64.zip upid-windows-x86_64.exe
+            cd ..
+          else
+            cd dist
+            tar -czf ${{ matrix.artifact }}.tar.gz ${{ matrix.artifact }}
+            cd ..
+          fi
+
       - name: Upload binary to release
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/${{ matrix.artifact }}
+            dist/${{ matrix.artifact }}.tar.gz
+            dist/upid-windows-x86_64.zip
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
