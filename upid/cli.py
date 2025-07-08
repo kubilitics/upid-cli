@@ -32,13 +32,21 @@ console = Console()
 @click.option('--config', '-c', help='Configuration file path')
 @click.option('--local', is_flag=True, help='Enable local mode for testing without authentication')
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose output')
+@click.option('--version', is_flag=True, help='Show version information')
 @click.pass_context
-def cli(ctx, config, local, verbose):
+def cli(ctx, config, local, verbose, version):
     """
     UPID CLI - Kubernetes Resource Optimization Platform
     
     Optimize your Kubernetes clusters for cost, performance, and efficiency.
     """
+    # Show version if requested
+    if version:
+        console.print("[bold blue]UPID CLI v1.0.0[/bold blue]")
+        console.print("Kubernetes Resource Optimization Platform")
+        console.print("© 2024 Kubilitics - hello@kubilitics.com")
+        sys.exit(0)
+    
     # Initialize configuration
     ctx.obj = {}
     ctx.obj['config'] = Config(config)
@@ -110,6 +118,29 @@ def status(ctx):
 
 @cli.command()
 @click.pass_context
+def config(ctx):
+    """Manage UPID CLI configuration"""
+    config_obj = ctx.obj['config']
+    
+    console.print("\n[bold blue]⚙️  UPID CLI Configuration[/bold blue]\n")
+    
+    # Show current configuration
+    table = Table(title="Current Configuration")
+    table.add_column("Setting", style="cyan")
+    table.add_column("Value", style="green")
+    
+    table.add_row("API URL", config_obj.get('api_url', 'Not set'))
+    table.add_row("API Version", config_obj.get('api_version', 'v1'))
+    table.add_row("Local Mode", "✅ Enabled" if config_obj.is_local_mode() else "❌ Disabled")
+    table.add_row("Timeout", str(config_obj.get('timeout', 30)) + "s")
+    table.add_row("Log Level", config_obj.get('log_level', 'INFO'))
+    
+    console.print(table)
+    
+    console.print("\n[yellow]Use 'upid init' to modify configuration[/yellow]")
+
+@cli.command()
+@click.pass_context
 def init(ctx):
     """Initialize UPID CLI configuration"""
     config = ctx.obj['config']
@@ -175,8 +206,15 @@ def main():
     except KeyboardInterrupt:
         console.print("\n[yellow]👋 Goodbye![/yellow]")
         sys.exit(0)
+    except click.Abort:
+        console.print("\n[yellow]Operation cancelled[/yellow]")
+        sys.exit(1)
+    except click.UsageError as e:
+        console.print(f"\n[red]❌ Usage error: {e}[/red]")
+        sys.exit(1)
     except Exception as e:
-        console.print(f"\n[red]❌ Error: {e}[/red]")
+        console.print(f"\n[red]❌ Unexpected error: {e}[/red]")
+        console.print("[yellow]💡 Try running with --verbose for more details[/yellow]")
         sys.exit(1)
 
 if __name__ == '__main__':

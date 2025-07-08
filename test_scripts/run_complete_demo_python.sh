@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# UPID CLI: Complete Enterprise Demo Script
+# UPID CLI: Complete Enterprise Demo Script (Python Version)
 # This script demonstrates UPID's full capabilities with real-world scenarios
 
 set -e
@@ -14,8 +14,8 @@ PURPLE='\033[0;35m'
 CYAN='\033[0;36m'
 NC='\033[0m' # No Color
 
-# UPID CLI binary path
-UPID_BIN="./dist/upid-darwin-arm64"
+# UPID CLI command
+UPID_CMD="python -m upid.cli"
 
 echo -e "${BLUE}🚀 UPID CLI: Enterprise-Grade Kubernetes Optimization Demo${NC}"
 echo -e "${BLUE}================================================================${NC}"
@@ -56,11 +56,11 @@ echo -e "${GREEN}Why it matters:${NC} You can't optimize what you can't see. Thi
 echo ""
 
 print_subsection "Local Mode - Mock Data (No Authentication Required)"
-$UPID_BIN --local cluster list
+$UPID_CMD --local cluster list
 
 echo ""
 print_subsection "Cluster Status Details"
-$UPID_BIN --local status
+$UPID_CMD --local status
 
 echo ""
 echo -e "${GREEN}Business Value:${NC}"
@@ -79,15 +79,15 @@ echo -e "${GREEN}Why it matters:${NC} Idle pods waste money. This shows you exac
 echo ""
 
 print_subsection "Resource Analysis"
-$UPID_BIN --local analyze resources local-cluster
+$UPID_CMD --local analyze resources local-cluster
 
 echo ""
 print_subsection "Idle Pod Analysis (Zero-Pod Scaling)"
-$UPID_BIN --local optimize zero-pod local-cluster
+$UPID_CMD --local optimize zero-pod local-cluster
 
 echo ""
 print_subsection "Cost Impact Analysis"
-$UPID_BIN --local report cost local-cluster
+$UPID_CMD --local report cost local-cluster
 
 echo ""
 echo -e "${GREEN}Business Value:${NC}"
@@ -106,15 +106,15 @@ echo -e "${GREEN}Why it matters:${NC} Most pods are over-provisioned. This right
 echo ""
 
 print_subsection "Resource Optimization Analysis"
-$UPID_BIN --local optimize resources local-cluster
+$UPID_CMD --local optimize resources local-cluster
 
 echo ""
 print_subsection "Cost Optimization"
-$UPID_BIN --local optimize costs local-cluster
+$UPID_CMD --local optimize costs local-cluster
 
 echo ""
 print_subsection "Auto-Optimization Configuration"
-$UPID_BIN --local optimize auto local-cluster --auto
+$UPID_CMD --local optimize auto local-cluster --auto
 
 echo ""
 echo -e "${GREEN}Business Value:${NC}"
@@ -161,11 +161,11 @@ echo -e "${GREEN}Why it matters:${NC} Gives you the data to make informed decisi
 echo ""
 
 print_subsection "Detailed Cost Analysis"
-$UPID_BIN --local report cost local-cluster --period 30d
+$UPID_CMD --local report cost local-cluster --period 30d
 
 echo ""
 print_subsection "Performance Analysis"
-$UPID_BIN --local analyze performance local-cluster
+$UPID_CMD --local analyze performance local-cluster
 
 echo ""
 print_subsection "Optimization Summary"
@@ -238,62 +238,33 @@ print_section "Getting Started with UPID"
 
 echo -e "${GREEN}Quick Start (5 minutes):${NC}"
 echo "1. Install UPID CLI:"
-echo "   curl -L https://github.com/kubilitics/upid-cli/releases/latest/download/upid-darwin-arm64 -o upid"
-echo "   chmod +x upid && sudo mv upid /usr/local/bin/"
+echo "   pip install upid-cli"
 echo ""
 echo "2. Test in local mode:"
-echo "   upid --local status"
-echo "   upid --local cluster list"
+echo "   python -m upid.cli --local status"
+echo "   python -m upid.cli --local cluster list"
 echo ""
 echo "3. Connect to your cluster:"
-echo "   upid auth login"
-echo "   upid cluster list"
+echo "   python -m upid.cli auth login"
+echo "   python -m upid.cli cluster list"
 echo ""
 echo "4. Run your first optimization:"
-echo "   upid optimize zero-pod your-cluster --dry-run"
+echo "   python -m upid.cli optimize zero-pod your-cluster --dry-run"
 echo ""
 
-echo -e "${GREEN}Production Deployment:${NC}"
-echo "1. Configure authentication: upid auth login --cluster your-eks-cluster"
-echo "2. Enable auto-optimization: upid optimize auto your-cluster --enable"
-echo "3. Set up monitoring: upid report cost your-cluster --alerts --threshold 1000"
-echo "4. Monitor results: upid status"
+echo -e "${GREEN}Enterprise Features:${NC}"
+echo "• Multi-cluster management"
+echo "• Automated optimization scheduling"
+echo "• Comprehensive cost reporting"
+echo "• Performance monitoring"
+echo "• Risk assessment and rollback"
 echo ""
 
-simulate_user_input
-
-# Expected Results
-print_section "Expected Results"
-
-echo -e "${GREEN}Cost Savings:${NC}"
-echo "• Zero-Pod Scaling: 20-40% savings on compute costs"
-echo "• Resource Optimization: 15-25% savings on resource allocation"
-echo "• Overall Reduction: 25-35% total infrastructure cost reduction"
+echo -e "${GREEN}Support & Documentation:${NC}"
+echo "• GitHub: https://github.com/kubilitics/upid-cli"
+echo "• Documentation: https://kubilitics.com/docs"
+echo "• Enterprise Support: hello@kubilitics.com"
 echo ""
 
-echo -e "${GREEN}Performance Impact:${NC}"
-echo "• Zero Impact: All optimizations maintain current performance"
-echo "• Better Resource Utilization: More efficient use of available resources"
-echo "• Faster Deployments: Optimized clusters deploy faster"
-echo ""
-
-echo -e "${GREEN}Operational Benefits:${NC}"
-echo "• Reduced Manual Work: Automated optimization reduces DevOps workload"
-echo "• Better Visibility: Clear cost and performance metrics"
-echo "• Risk Reduction: Safe optimizations with rollback capabilities"
-echo ""
-
-# Conclusion
-print_section "Conclusion"
-
-echo -e "${GREEN}UPID CLI transforms Kubernetes cost optimization from a manual, error-prone process into an automated, data-driven system.${NC}"
-echo ""
-echo -e "${CYAN}Key Benefits:${NC}"
-echo "• Immediate Value: 25-35% cost reduction in the first month"
-echo "• Zero Risk: Safe optimizations with automatic rollback"
-echo "• Complete Visibility: Clear metrics and reporting"
-echo "• Enterprise Ready: Scales from 1 to 1000+ clusters"
-echo ""
-echo -e "${BLUE}Start your optimization journey today with UPID CLI - the intelligent Kubernetes cost optimization platform that pays for itself.${NC}"
-echo ""
-echo -e "${PURPLE}UPID CLI - Optimize Kubernetes, Maximize Value 🚀${NC}" 
+echo -e "${BLUE}🎉 Demo Complete! UPID CLI is ready for production use.${NC}"
+echo -e "${BLUE}Start optimizing your Kubernetes clusters today!${NC}" 

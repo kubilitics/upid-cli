@@ -608,4 +608,43 @@ class UPIDAPIClient:
             return {'message': 'Logged out from local mode'}
         
         return self._post('/auth/logout')
+    
+    def rollback_deployment(self, cluster_id: str, deployment_name: str, namespace: str, revision: Optional[str] = None) -> Dict[str, Any]:
+        """Rollback a deployment to previous version"""
+        if self.local_mode:
+            return {
+                'name': deployment_name,
+                'namespace': namespace,
+                'revision': revision or 'previous',
+                'status': 'rolling back'
+            }
+        
+        endpoint = f'/clusters/{cluster_id}/deployments/{deployment_name}/rollback'
+        data = {'namespace': namespace}
+        if revision:
+            data['revision'] = revision
+        
+        return self._post(endpoint, json=data)
+    
+    def get_deployment_status(self, cluster_id: str, namespace: str = 'default') -> Dict[str, Any]:
+        """Get deployment status for a namespace"""
+        if self.local_mode:
+            return {
+                'deployments': [
+                    {
+                        'name': 'example-deployment',
+                        'status': 'ready',
+                        'ready': 3,
+                        'available': 3,
+                        'replicas': 3,
+                        'updated': '2024-01-01T00:00:00Z'
+                    }
+                ]
+            }
+        
+        endpoint = f'/clusters/{cluster_id}/deployments/status'
+        if namespace != 'default':
+            endpoint += f'?namespace={namespace}'
+        
+        return self._get(endpoint)
 

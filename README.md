@@ -9,7 +9,7 @@
 Copy and run this command in your terminal:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/vellankikoti/upid-cli/main/install.sh | bash
+curl -sSL https://raw.githubusercontent.com/kubilitics/upid-cli/main/install.sh | bash
 ```
 - This will auto-detect your OS/arch, download the correct binary from the latest release, and install it to `/usr/local/bin/upid`.
 - After install, run:
@@ -22,7 +22,7 @@ upid --help
 
 #### **For macOS (Apple Silicon/ARM64):**
 ```bash
-curl -LO https://github.com/vellankikoti/upid-cli/releases/latest/download/upid-darwin-arm64
+curl -LO https://github.com/kubilitics/upid-cli/releases/latest/download/upid-darwin-arm64
 chmod +x upid-darwin-arm64
 sudo mv upid-darwin-arm64 /usr/local/bin/upid
 upid --help
@@ -30,7 +30,7 @@ upid --help
 
 #### **For Linux (x86_64):**
 ```bash
-curl -LO https://github.com/vellankikoti/upid-cli/releases/latest/download/upid-linux-x86_64
+curl -LO https://github.com/kubilitics/upid-cli/releases/latest/download/upid-linux-x86_64
 chmod +x upid-linux-x86_64
 sudo mv upid-linux-x86_64 /usr/local/bin/upid
 upid --help
@@ -219,7 +219,7 @@ upid universal status
 ### Setup Development Environment
 ```bash
 # Clone repository
-git clone https://github.com/vellankikoti/upid-cli.git
+git clone https://github.com/kubilitics/upid-cli.git
 cd upid-cli
 
 # Create virtual environment
@@ -293,9 +293,9 @@ The UPID CLI is **production-ready** and can be shared with others for testing. 
 ## 📚 Additional Resources
 
 - **Documentation**: [docs.upid.com](https://docs.upid.com)
-- **Issues**: [GitHub Issues](https://github.com/vellankikoti/upid-cli/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/vellankikotiupid-cli/discussions)
-- **Email**: koti@vellanki.in
+- **Issues**: [GitHub Issues](https://github.com/kubilitics/upid-cli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/kubilitics/upid-cli/discussions)
+- **Email**: hello@kubilitics.com
 
 ## 📄 License
 

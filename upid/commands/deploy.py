@@ -261,6 +261,121 @@ def scale(ctx, cluster_id, deployment_name, namespace, replicas):
 @click.argument('cluster_id')
 @click.argument('deployment_name')
 @click.option('--namespace', '-ns', default='default', help='Namespace')
+@click.option('--revision', '-r', help='Revision to rollback to (default: previous)')
+@click.option('--force', '-f', is_flag=True, help='Force rollback without confirmation')
+@click.pass_context
+def rollback(ctx, cluster_id, deployment_name, namespace, revision, force):
+    """Rollback deployment to previous version"""
+    try:
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
+        
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
+            console.print("[red]✗ Not authenticated. Please login first.[/red]")
+            raise click.Abort()
+        
+        if not force:
+            confirmed = click.confirm(f"Rollback deployment '{deployment_name}' to previous version?")
+            if not confirmed:
+                console.print("[yellow]Rollback cancelled[/yellow]")
+                return
+        
+        console.print(f"[yellow]Rolling back deployment '{deployment_name}'...[/yellow]")
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console
+        ) as progress:
+            task = progress.add_task("Rolling back deployment...", total=None)
+            result = api_client.rollback_deployment(cluster_id, deployment_name, namespace, revision)
+            progress.update(task, completed=True)
+        
+        console.print(Panel(
+            f"[green]✓ Deployment rolled back successfully![/green]\n\n"
+            f"Name: [bold]{deployment_name}[/bold]\n"
+            f"Namespace: {namespace}\n"
+            f"Revision: {result.get('revision', 'previous')}\n"
+            f"Status: {result.get('status', 'rolling back')}",
+            title="[bold green]Deployment Rolled Back[/bold green]",
+            border_style="green"
+        ))
+        
+    except Exception as e:
+        console.print(f"[red]✗ Failed to rollback deployment: {str(e)}[/red]")
+        raise click.Abort()
+
+@deploy.command()
+@click.argument('cluster_id')
+@click.option('--namespace', '-ns', default='default', help='Namespace')
+@click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
+@click.pass_context
+def status(ctx, cluster_id, namespace, format):
+    """Show deployment status"""
+    try:
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        api_client = ctx.obj['api_client']
+        
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
+            console.print("[red]✗ Not authenticated. Please login first.[/red]")
+            raise click.Abort()
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console
+        ) as progress:
+            task = progress.add_task(f"Fetching deployment status from namespace '{namespace}'...", total=None)
+            status_data = api_client.get_deployment_status(cluster_id, namespace)
+            progress.update(task, completed=True)
+        
+        if format == 'table':
+            # Create status table
+            table = Table(title=f"Deployment Status in {namespace}", box=box.ROUNDED)
+            table.add_column("Name", style="cyan", no_wrap=True)
+            table.add_column("Status", style="white")
+            table.add_column("Ready", style="green")
+            table.add_column("Available", style="yellow")
+            table.add_column("Replicas", style="dim")
+            table.add_column("Updated", style="dim")
+            
+            for deployment in status_data.get('deployments', []):
+                status_color = "green" if deployment.get('status') == 'ready' else "red"
+                table.add_row(
+                    deployment.get('name', 'N/A'),
+                    f"[{status_color}]{deployment.get('status', 'N/A')}[/{status_color}]",
+                    str(deployment.get('ready', 0)),
+                    str(deployment.get('available', 0)),
+                    str(deployment.get('replicas', 0)),
+                    deployment.get('updated', 'N/A')
+                )
+            
+            console.print(table)
+            
+        elif format == 'json':
+            import json
+            console.print(json.dumps(status_data, indent=2))
+            
+        elif format == 'yaml':
+            import yaml
+            console.print(yaml.dump(status_data, default_flow_style=False))
+        
+    except Exception as e:
+        console.print(f"[red]✗ Failed to get deployment status: {str(e)}[/red]")
+        raise click.Abort()
+
+@deploy.command()
+@click.argument('cluster_id')
+@click.argument('deployment_name')
+@click.option('--namespace', '-ns', default='default', help='Namespace')
 @click.option('--force', '-f', is_flag=True, help='Force deletion without confirmation')
 @click.pass_context
 def delete(ctx, cluster_id, deployment_name, namespace, force):

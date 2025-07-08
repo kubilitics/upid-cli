@@ -31,7 +31,7 @@ case $OS in
 esac
 
 # GitHub release URL
-RELEASE_URL="https://github.com/upid/upid-cli/releases/latest/download"
+RELEASE_URL="https://github.com/kubilitics/upid-cli/releases/latest/download"
 BINARY_NAME="upid-$OS-$ARCH"
 
 echo -e "${GREEN}Installing UPID CLI...${NC}"

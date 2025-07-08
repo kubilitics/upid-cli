@@ -17,7 +17,7 @@ Write-Host "Installing UPID CLI..." -ForegroundColor Green
 $Arch = if ([Environment]::Is64BitOperatingSystem) { "x86_64" } else { "x86" }
 
 # GitHub release URL
-$ReleaseUrl = "https://github.com/upid/upid-cli/releases/latest/download"
+$ReleaseUrl = "https://github.com/kubilitics/upid-cli/releases/latest/download"
 $BinaryName = "upid-windows-$Arch.exe"
 
 Write-Host "Architecture: $Arch" -ForegroundColor Yellow

@@ -44,7 +44,7 @@ echo -e "${GREEN}✅ System requirements met${NC}"
 # Clone the repository if not already present
 if [ ! -d "upid-cli" ]; then
     echo -e "${YELLOW}Cloning UPID CLI repository...${NC}"
-    git clone https://github.com/vellankikoti/upid-cli.git
+    git clone https://github.com/kubilitics/upid-cli.git
     cd upid-cli
 else
     echo -e "${YELLOW}Using existing upid-cli directory${NC}"
