@@ -51,7 +51,7 @@ jobs:
           if [ "${{ matrix.os }}" = "windows-latest" ]; then
             pyinstaller --onefile --name upid-windows-x86_64 --distpath ./dist --workpath ./build --specpath ./build --clean --noconfirm upid/cli.py
           elif [ "${{ matrix.os }}" = "macos-latest" ]; then
-            pyinstaller --onefile --name upid-darwin-arm64 --distpath ./dist --workpath ./build --specpath ./build --clean --noconfirm upid/cli.py --target-architecture universal2
+            pyinstaller --onefile --name upid-darwin-arm64 --distpath ./dist --workpath ./build --specpath ./build --clean --noconfirm upid/cli.py
           elif [ "${{ matrix.arch }}" = "aarch64" ]; then
             sudo apt-get update && sudo apt-get install -y gcc-aarch64-linux-gnu
             pyinstaller --onefile --name upid-linux-arm64 --distpath ./dist --workpath ./build --specpath ./build --clean --noconfirm upid/cli.py

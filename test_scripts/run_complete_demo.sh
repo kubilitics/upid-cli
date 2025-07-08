@@ -114,7 +114,7 @@ $UPID_BIN --local optimize costs local-cluster
 
 echo ""
 print_subsection "Auto-Optimization Configuration"
-$UPID_BIN --local optimize auto local-cluster --enable
+$UPID_BIN --local optimize auto local-cluster --auto
 
 echo ""
 echo -e "${GREEN}Business Value:${NC}"
@@ -161,7 +161,7 @@ echo -e "${GREEN}Why it matters:${NC} Gives you the data to make informed decisi
 echo ""
 
 print_subsection "Detailed Cost Analysis"
-$UPID_BIN --local report cost local-cluster --detailed
+$UPID_BIN --local report cost local-cluster --period 30d
 
 echo ""
 print_subsection "Performance Analysis"
@@ -238,7 +238,7 @@ print_section "Getting Started with UPID"
 
 echo -e "${GREEN}Quick Start (5 minutes):${NC}"
 echo "1. Install UPID CLI:"
-echo "   curl -L https://github.com/your-repo/upid-cli/releases/latest/download/upid-darwin-arm64 -o upid"
+echo "   curl -L https://github.com/vellankikoti/upid-cli/releases/latest/download/upid-darwin-arm64 -o upid"
 echo "   chmod +x upid && sudo mv upid /usr/local/bin/"
 echo ""
 echo "2. Test in local mode:"

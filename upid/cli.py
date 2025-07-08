@@ -14,10 +14,17 @@ from rich import box
 from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Prompt, Confirm
 from pathlib import Path
-from .commands import auth, cluster, analyze, optimize, deploy, report, universal
-from .core.config import Config
-from .core.auth import AuthManager
-from .core.api_client import UPIDAPIClient
+try:
+    from .commands import auth, cluster, analyze, optimize, deploy, report, universal
+    from .core.config import Config
+    from .core.auth import AuthManager
+    from .core.api_client import UPIDAPIClient
+except ImportError:
+    # Fallback for PyInstaller
+    from upid.commands import auth, cluster, analyze, optimize, deploy, report, universal
+    from upid.core.config import Config
+    from upid.core.auth import AuthManager
+    from upid.core.api_client import UPIDAPIClient
 
 console = Console()
 

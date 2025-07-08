@@ -39,7 +39,7 @@ UPID CLI is an intelligent Kubernetes resource optimization platform that automa
 
 ```bash
 # Install UPID CLI
-curl -L https://github.com/your-repo/upid-cli/releases/latest/download/upid-darwin-arm64 -o upid
+curl -L https://github.com/vellankikoti/upid-cli/releases/latest/download/upid-darwin-arm64 -o upid
 chmod +x upid
 sudo mv upid /usr/local/bin/
 
@@ -453,7 +453,7 @@ upid report cost --enterprise --period 90d
 
 ```bash
 # 1. Install UPID CLI
-curl -L https://github.com/your-repo/upid-cli/releases/latest/download/upid-darwin-arm64 -o upid
+curl -L https://github.com/vellankikoti/upid-cli/releases/latest/download/upid-darwin-arm64 -o upid
 chmod +x upid
 sudo mv upid /usr/local/bin/
 
@@ -656,7 +656,7 @@ Start your optimization journey today with UPID CLI - the intelligent Kubernetes
 ## 📞 Support & Community
 
 - **Documentation**: [https://docs.upid.io](https://docs.upid.io)
-- **GitHub**: [https://github.com/your-repo/upid-cli](https://github.com/your-repo/upid-cli)
+- **GitHub**: [https://github.com/vellankikoti/upid-cli](https://github.com/vellankikoti/upid-cli)
 - **Discord**: [https://discord.gg/upid](https://discord.gg/upid)
 - **Email**: support@upid.io
 

@@ -1,3 +1,0 @@
-"""
-UPID CLI Test Suite
-""" 
