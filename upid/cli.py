@@ -6,6 +6,11 @@ Kubernetes Resource Optimization Platform
 
 import click
 import sys
+import warnings
+
+# Suppress urllib3 warnings for cleaner output
+warnings.filterwarnings("ignore", category=Warning)
+
 from rich.console import Console
 from rich.table import Table
 from rich import print as rprint
@@ -28,7 +33,23 @@ except ImportError:
 
 console = Console()
 
-@click.group()
+class CustomGroup(click.Group):
+    def main(self, *args, **kwargs):
+        try:
+            return super().main(*args, **kwargs)
+        except click.exceptions.NoSuchOption as e:
+            console.print(f"\n[red]❌ Unknown option: {e.option_name}[/red]")
+            console.print("[yellow]Use '--help' to see available options.[/yellow]")
+            sys.exit(2)
+        except click.exceptions.UsageError as e:
+            if 'No such command' in str(e):
+                cmd = str(e).split("No such command ")[-1].strip("' .")
+                console.print(f"\n[red]❌ Unknown command: {cmd}[/red]")
+                console.print("[yellow]Use '--help' to see available commands.[/yellow]")
+                sys.exit(2)
+            raise
+
+@click.group(cls=CustomGroup)
 @click.option('--config', '-c', help='Configuration file path')
 @click.option('--local', is_flag=True, help='Enable local mode for testing without authentication')
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose output')
@@ -203,9 +224,15 @@ def main():
         console.print("\n[yellow]Operation cancelled[/yellow]")
         sys.exit(1)
     except click.UsageError as e:
+        # Suppress urllib3 warnings for cleaner error output
+        import warnings
+        warnings.filterwarnings("ignore", category=Warning)
         console.print(f"\n[red]❌ Usage error: {e}[/red]")
         sys.exit(1)
     except Exception as e:
+        # Suppress urllib3 warnings for cleaner error output
+        import warnings
+        warnings.filterwarnings("ignore", category=Warning)
         console.print(f"\n[red]❌ Unexpected error: {e}[/red]")
         console.print("[yellow]💡 Try running with --verbose for more details[/yellow]")
         sys.exit(1)

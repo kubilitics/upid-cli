@@ -1,6 +1,7 @@
 """
 Universal Kubernetes Cluster Detector
 Detects and configures any Kubernetes cluster automatically
+Enhanced with time-series intelligence capabilities
 """
 
 import os
@@ -9,13 +10,35 @@ import yaml
 from typing import Dict, Any, Optional, List
 from pathlib import Path
 import json
+from datetime import datetime
+from .data_store import TimeSeriesDataStore
+from .analytics import PatternAnalyzer
+from .intelligence import IntelligentDataCollector
+from .advanced_analytics import AdvancedIntelligenceEngine
+from .confidence_optimizer import ConfidenceOptimizer
+from .business_impact import BusinessImpactCorrelator
+from .executive_dashboard import ExecutiveDashboardEngine
+import numpy as np
 
 class ClusterDetector:
-    """Detects and analyzes any Kubernetes cluster"""
+    """Detects and analyzes any Kubernetes cluster with intelligence capabilities"""
     
     def __init__(self):
         self.kubeconfig = os.getenv('KUBECONFIG', '~/.kube/config')
         self.kubeconfig = os.path.expanduser(self.kubeconfig)
+        
+        # Initialize intelligence components
+        self.data_store = TimeSeriesDataStore()
+        self.pattern_analyzer = PatternAnalyzer()
+        self.intelligent_collector = IntelligentDataCollector()
+        self.advanced_analytics = AdvancedIntelligenceEngine()
+        
+        # Initialize Phase 2 components
+        self.confidence_optimizer = ConfidenceOptimizer()
+        self.business_impact_correlator = BusinessImpactCorrelator()
+        
+        # Initialize Phase 3 component
+        self.executive_dashboard_engine = ExecutiveDashboardEngine()
     
     def detect_cluster(self) -> Dict[str, Any]:
         """Detect cluster type and capabilities"""
@@ -218,12 +241,13 @@ class ClusterDetector:
         return capabilities
     
     def get_cluster_metrics(self) -> Dict[str, Any]:
-        """Get real-time cluster metrics"""
+        """Get real-time cluster metrics with intelligence"""
         metrics = {
             'nodes': {},
             'pods': {},
             'resources': {},
-            'costs': {}
+            'costs': {},
+            'intelligence': {}
         }
         
         try:
@@ -245,6 +269,14 @@ class ClusterDetector:
             
             # Get resource usage
             metrics['resources'] = self._get_resource_usage()
+            
+            # Store metrics in time-series database
+            cluster_info = self.detect_cluster()
+            cluster_id = cluster_info.get('name', 'unknown')
+            self.data_store.store_metrics(cluster_id, metrics)
+            
+            # Add intelligence insights
+            metrics['intelligence'] = self._get_intelligence_insights(cluster_id)
             
         except Exception as e:
             metrics['error'] = str(e)
@@ -358,4 +390,373 @@ class ClusterDetector:
             else:
                 return int(memory_str)
         except:
-            return 0 
+            return 0
+    
+    def collect_intelligent_metrics(self, cluster_id: str) -> Dict[str, Any]:
+        """Collect intelligent metrics with business context"""
+        try:
+            # Use the intelligent data collector
+            intelligent_metrics = self.intelligent_collector.collect_intelligent_metrics(cluster_id)
+            
+            # Store the intelligent metrics
+            self.data_store.store_metrics(cluster_id, intelligent_metrics)
+            
+            return intelligent_metrics
+            
+        except Exception as e:
+            return {
+                'cluster_id': cluster_id,
+                'timestamp': datetime.utcnow().isoformat(),
+                'error': str(e)
+            }
+    
+    def analyze_intelligent_patterns(self, cluster_id: str) -> Dict[str, Any]:
+        """Analyze intelligent patterns with advanced analytics"""
+        try:
+            # Get historical data
+            historical_data = self.data_store.get_historical_data(cluster_id, days=90)
+            
+            # Perform advanced pattern analysis
+            advanced_analysis = self.advanced_analytics.analyze_advanced_patterns(historical_data)
+            
+            # Also perform basic pattern analysis for comparison
+            basic_analysis = self.pattern_analyzer.analyze_historical_data(historical_data)
+            
+            return {
+                'cluster_id': cluster_id,
+                'timestamp': datetime.utcnow().isoformat(),
+                'advanced_analysis': advanced_analysis,
+                'basic_analysis': basic_analysis,
+                'analysis_comparison': {
+                    'advanced_features': len(advanced_analysis.get('advanced_patterns', {})),
+                    'basic_features': len(basic_analysis.get('patterns', {})),
+                    'intelligence_level': 'advanced' if advanced_analysis.get('confidence_metrics', {}).get('overall_confidence', 0) > 70 else 'basic'
+                }
+            }
+            
+        except Exception as e:
+            return {
+                'cluster_id': cluster_id,
+                'timestamp': datetime.utcnow().isoformat(),
+                'error': str(e)
+            }
+    
+    def get_intelligent_recommendations(self, cluster_id: str) -> Dict[str, Any]:
+        """Get intelligent recommendations with business context"""
+        try:
+            # Collect current intelligent metrics
+            current_metrics = self.collect_intelligent_metrics(cluster_id)
+            
+            # Analyze patterns
+            pattern_analysis = self.analyze_intelligent_patterns(cluster_id)
+            
+            # Generate recommendations
+            recommendations = {
+                'cluster_id': cluster_id,
+                'timestamp': datetime.utcnow().isoformat(),
+                'business_recommendations': [],
+                'technical_recommendations': [],
+                'cost_optimization_recommendations': [],
+                'capacity_planning_recommendations': [],
+                'overall_priority': 'medium'
+            }
+            
+            # Extract recommendations from advanced analysis
+            advanced_analysis = pattern_analysis.get('advanced_analysis', {})
+            
+            # Business recommendations
+            business_intelligence = advanced_analysis.get('business_intelligence', {})
+            for metric_type, business_data in business_intelligence.get('business_hours_analysis', {}).items():
+                if not business_data.get('has_business_pattern', False):
+                    recommendations['business_recommendations'].append({
+                        'type': 'business_pattern_optimization',
+                        'priority': 'medium',
+                        'resource': metric_type,
+                        'description': f'No clear business hours pattern detected for {metric_type}',
+                        'action': 'review_business_hours_utilization',
+                        'confidence': business_data.get('business_hours_efficiency', 0)
+                    })
+            
+            # Technical recommendations
+            efficiency_analysis = advanced_analysis.get('efficiency_analysis', {})
+            for recommendation in efficiency_analysis.get('efficiency_recommendations', []):
+                recommendations['technical_recommendations'].append(recommendation)
+            
+            # Cost optimization recommendations
+            cost_analysis = business_intelligence.get('cost_optimization', {})
+            for metric_type, savings in cost_analysis.get('potential_savings', {}).items():
+                if savings.get('potential_savings_percent', 0) > 20:
+                    recommendations['cost_optimization_recommendations'].append({
+                        'type': 'cost_optimization',
+                        'priority': 'high' if savings['potential_savings_percent'] > 50 else 'medium',
+                        'resource': metric_type,
+                        'description': f'Potential savings of {savings["potential_savings_percent"]:.1f}% for {metric_type}',
+                        'action': 'implement_optimization',
+                        'savings_percent': savings.get('potential_savings_percent', 0)
+                    })
+            
+            # Capacity planning recommendations
+            capacity_analysis = business_intelligence.get('capacity_planning', {})
+            for metric_type, capacity_data in capacity_analysis.get('scaling_insights', {}).items():
+                if capacity_data.get('scaling_needed', False):
+                    recommendations['capacity_planning_recommendations'].append({
+                        'type': 'capacity_planning',
+                        'priority': capacity_data.get('urgency', 'medium'),
+                        'resource': metric_type,
+                        'description': f'Scaling needed for {metric_type}',
+                        'action': capacity_data.get('recommended_action', 'review_capacity'),
+                        'urgency': capacity_data.get('urgency', 'medium')
+                    })
+            
+            # Determine overall priority
+            high_priority_count = sum(1 for rec in recommendations['business_recommendations'] + 
+                                   recommendations['technical_recommendations'] + 
+                                   recommendations['cost_optimization_recommendations'] + 
+                                   recommendations['capacity_planning_recommendations'] 
+                                   if rec.get('priority') == 'high')
+            
+            if high_priority_count > 3:
+                recommendations['overall_priority'] = 'high'
+            elif high_priority_count > 1:
+                recommendations['overall_priority'] = 'medium'
+            else:
+                recommendations['overall_priority'] = 'low'
+            
+            return recommendations
+            
+        except Exception as e:
+            return {
+                'cluster_id': cluster_id,
+                'timestamp': datetime.utcnow().isoformat(),
+                'error': str(e)
+            }
+    
+    def get_intelligent_idle_analysis(self, cluster_id: str) -> Dict[str, Any]:
+        """Get intelligent idle analysis with business context"""
+        try:
+            # Collect intelligent metrics
+            intelligent_metrics = self.collect_intelligent_metrics(cluster_id)
+            
+            # Extract idle analysis
+            idle_analysis = intelligent_metrics.get('idle_analysis', {})
+            
+            # Enhance with business context
+            enhanced_idle_analysis = {
+                'cluster_id': cluster_id,
+                'timestamp': datetime.utcnow().isoformat(),
+                'idle_pods': idle_analysis.get('idle_pods', []),
+                'idle_count': idle_analysis.get('idle_count', 0),
+                'potential_savings': idle_analysis.get('potential_savings', {}),
+                'business_context': {
+                    'idle_by_environment': idle_analysis.get('idle_by_environment', {}),
+                    'idle_by_namespace': idle_analysis.get('idle_by_namespace', {}),
+                    'confidence_distribution': idle_analysis.get('idle_confidence_distribution', {})
+                },
+                'intelligent_insights': []
+            }
+            
+            # Generate intelligent insights
+            business_activity = intelligent_metrics.get('business_activity', {})
+            resource_correlation = intelligent_metrics.get('resource_work_correlation', {})
+            
+            # Business hours analysis
+            if business_activity.get('business_activity_ratio', 0) < 0.3:
+                enhanced_idle_analysis['intelligent_insights'].append({
+                    'type': 'business_activity_low',
+                    'description': 'Low business activity detected across cluster',
+                    'recommendation': 'Review business hours utilization and consider scaling down during off-hours',
+                    'confidence': business_activity.get('business_activity_ratio', 0) * 100
+                })
+            
+            # Resource efficiency insights
+            efficiency_score = resource_correlation.get('efficiency_score', 0)
+            if efficiency_score < 50:
+                enhanced_idle_analysis['intelligent_insights'].append({
+                    'type': 'resource_efficiency_low',
+                    'description': f'Low resource efficiency ({efficiency_score:.1f}%)',
+                    'recommendation': 'Optimize resource allocation and eliminate idle resources',
+                    'confidence': 100 - efficiency_score
+                })
+            
+            # High confidence idle pods
+            high_confidence_idle = [pod for pod in idle_analysis.get('idle_pods', []) 
+                                  if pod.get('confidence', 0) > 80]
+            
+            if high_confidence_idle:
+                enhanced_idle_analysis['intelligent_insights'].append({
+                    'type': 'high_confidence_idle',
+                    'description': f'{len(high_confidence_idle)} pods with high confidence idle detection',
+                    'recommendation': 'Consider scaling down these pods immediately',
+                    'confidence': np.mean([pod.get('confidence', 0) for pod in high_confidence_idle])
+                })
+            
+            return enhanced_idle_analysis
+            
+        except Exception as e:
+            return {
+                'cluster_id': cluster_id,
+                'timestamp': datetime.utcnow().isoformat(),
+                'error': str(e)
+            }
+    
+    def generate_confidence_optimization_plans(self, cluster_id: str) -> Dict[str, Any]:
+        """Generate confidence-based optimization plans"""
+        try:
+            # Collect intelligent metrics
+            intelligent_metrics = self.collect_intelligent_metrics(cluster_id)
+            
+            # Get historical data
+            historical_data = self.data_store.get_historical_data(cluster_id, days=90)
+            
+            # Generate optimization plans
+            optimization_plans = self.confidence_optimizer.generate_optimization_plans(
+                cluster_id, intelligent_metrics, historical_data
+            )
+            
+            # Get optimization summary
+            optimization_summary = self.confidence_optimizer.get_optimization_summary(optimization_plans)
+            
+            return {
+                'cluster_id': cluster_id,
+                'optimization_plans': [plan.__dict__ for plan in optimization_plans],
+                'optimization_summary': optimization_summary,
+                'total_plans': len(optimization_plans),
+                'high_confidence_plans': len([p for p in optimization_plans if p.confidence_score >= 0.8]),
+                'low_risk_plans': len([p for p in optimization_plans if p.risk_level.value in ['low', 'medium']])
+            }
+            
+        except Exception as e:
+            return {
+                'cluster_id': cluster_id,
+                'error': str(e),
+                'optimization_plans': [],
+                'optimization_summary': {},
+                'total_plans': 0,
+                'high_confidence_plans': 0,
+                'low_risk_plans': 0
+            }
+    
+    def correlate_business_impact(self, cluster_id: str) -> Dict[str, Any]:
+        """Correlate technical metrics to business outcomes"""
+        try:
+            # Collect intelligent metrics
+            intelligent_metrics = self.collect_intelligent_metrics(cluster_id)
+            
+            # Generate optimization plans for business impact analysis
+            optimization_plans = self.confidence_optimizer.generate_optimization_plans(
+                cluster_id, intelligent_metrics, {}
+            )
+            
+            # Correlate business impact
+            business_correlation = self.business_impact_correlator.correlate_technical_to_business(
+                cluster_id, intelligent_metrics, optimization_plans
+            )
+            
+            # Generate business report
+            business_report = self.business_impact_correlator.generate_business_report(business_correlation)
+            
+            return {
+                'cluster_id': cluster_id,
+                'business_correlation': business_correlation,
+                'business_report': business_report,
+                'revenue_analysis': business_correlation.get('revenue_analysis', {}),
+                'roi_analysis': business_correlation.get('roi_analysis', {}),
+                'sla_analysis': business_correlation.get('sla_compliance_analysis', {})
+            }
+            
+        except Exception as e:
+            return {
+                'cluster_id': cluster_id,
+                'error': str(e),
+                'business_correlation': {},
+                'business_report': {},
+                'revenue_analysis': {},
+                'roi_analysis': {},
+                'sla_analysis': {}
+            }
+    
+    def execute_optimization_plan(self, cluster_id: str, plan_index: int, dry_run: bool = True) -> Dict[str, Any]:
+        """Execute a specific optimization plan"""
+        try:
+            # Generate optimization plans
+            optimization_result = self.generate_confidence_optimization_plans(cluster_id)
+            
+            if 'error' in optimization_result:
+                return optimization_result
+            
+            optimization_plans = optimization_result.get('optimization_plans', [])
+            
+            if plan_index >= len(optimization_plans):
+                return {
+                    'cluster_id': cluster_id,
+                    'error': f'Plan index {plan_index} out of range. Total plans: {len(optimization_plans)}'
+                }
+            
+            # Convert dict back to OptimizationPlan object
+            plan_dict = optimization_plans[plan_index]
+            from .confidence_optimizer import OptimizationPlan, OptimizationType, RiskLevel, SafetyBoundary
+            
+            plan = OptimizationPlan(
+                operation_type=OptimizationType(plan_dict['operation_type']),
+                target_resource=plan_dict['target_resource'],
+                current_value=plan_dict['current_value'],
+                proposed_value=plan_dict['proposed_value'],
+                confidence_score=plan_dict['confidence_score'],
+                risk_level=RiskLevel(plan_dict['risk_level']),
+                risk_score=plan_dict['risk_score'],
+                potential_savings=plan_dict['potential_savings'],
+                business_impact=plan_dict['business_impact'],
+                rollback_plan=plan_dict['rollback_plan'],
+                safety_boundaries=SafetyBoundary(),
+                simulation_results=plan_dict['simulation_results']
+            )
+            
+            # Execute the plan
+            execution_result = self.confidence_optimizer.execute_optimization(plan, dry_run)
+            
+            return {
+                'cluster_id': cluster_id,
+                'plan_index': plan_index,
+                'execution_result': execution_result,
+                'dry_run': dry_run
+            }
+            
+        except Exception as e:
+            return {
+                'cluster_id': cluster_id,
+                'error': str(e),
+                'plan_index': plan_index,
+                'execution_result': {},
+                'dry_run': dry_run
+            }
+    
+    def generate_executive_dashboard(self, cluster_id: str, format: str = 'json') -> str:
+        """Generate and export the executive dashboard summary for a cluster"""
+        # Gather optimization history (last 90 days)
+        optimization_history = []
+        try:
+            # Use confidence optimizer to get plans (simulate history)
+            optimization_result = self.generate_confidence_optimization_plans(cluster_id)
+            optimization_history = optimization_result.get('optimization_plans', [])
+        except Exception:
+            pass
+        # Gather business reports (simulate with current)
+        business_reports = []
+        try:
+            business_result = self.correlate_business_impact(cluster_id)
+            if business_result.get('business_report'):
+                business_reports.append(business_result['business_report'])
+        except Exception:
+            pass
+        # Gather KPI history (simulate with current)
+        kpi_history = []
+        try:
+            if business_result.get('business_correlation') and business_result['business_correlation'].get('business_kpis'):
+                kpi_history.append(business_result['business_correlation']['business_kpis'])
+        except Exception:
+            pass
+        # Generate dashboard
+        summary = self.executive_dashboard_engine.generate_dashboard(
+            cluster_id, optimization_history, business_reports, kpi_history
+        )
+        return self.executive_dashboard_engine.export_dashboard(summary, format=format) 

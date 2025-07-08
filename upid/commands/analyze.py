@@ -1,5 +1,6 @@
 """
 Analysis commands for UPID CLI
+Enhanced with intelligence and pattern analysis
 """
 
 import click
@@ -13,13 +14,102 @@ from rich.text import Text
 from ..core.config import Config
 from ..core.api_client import UPIDAPIClient
 from ..core.auth import AuthManager
+from ..core.cluster_detector import ClusterDetector
+from ..core.analytics import PatternAnalyzer
+from ..core.data_store import TimeSeriesDataStore
+from typing import Dict, Any
 
 console = Console()
 
 @click.group()
 def analyze():
-    """Analysis commands"""
+    """Analyze cluster resources and patterns"""
     pass
+
+@analyze.command()
+@click.argument('cluster_id')
+@click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml', 'markdown', 'html']), help='Output format')
+@click.pass_context
+def executive(ctx, cluster_id, format):
+    """Generate executive dashboard summary for a cluster"""
+    try:
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
+            console.print("[red]✗ Not authenticated. Please login first.[/red]")
+            raise click.Abort()
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console
+        ) as progress:
+            task = progress.add_task(f"Generating executive dashboard for cluster {cluster_id}...", total=None)
+            detector = ClusterDetector()
+            dashboard = detector.generate_executive_dashboard(cluster_id, format=format)
+            progress.update(task, completed=True)
+        
+        if format == 'table':
+            try:
+                import json
+                data = json.loads(dashboard)
+                console.print(Panel.fit(
+                    f"[bold blue]🏢 UPID Executive Dashboard[/bold blue]\n"
+                    f"Cluster: [cyan]{data.get('cluster_id', '')}[/cyan]\n"
+                    f"Timestamp: [green]{data.get('timestamp', '')}[/green]\n"
+                    f"Total Optimizations: [yellow]{data.get('total_optimizations', 0)}[/yellow]\n"
+                    f"Total Savings: [green]${data.get('total_savings', 0):.2f}[/green]\n"
+                    f"ROI: [blue]{data.get('roi', 0):.1f}%[/blue]\n"
+                    f"Risk Score: [red]{data.get('risk_score', 0):.2f}[/red]\n"
+                    f"Business Impact: [magenta]{data.get('business_impact', 'neutral')}[/magenta]",
+                    title="Executive Dashboard Summary",
+                    border_style="blue"
+                ))
+                # Show KPIs
+                kpis = data.get('kpi_summary', {})
+                if kpis:
+                    kpi_table = Table(title="KPI Summary", box=box.ROUNDED)
+                    kpi_table.add_column("KPI", style="cyan")
+                    kpi_table.add_column("Value", style="green")
+                    for k, v in kpis.items():
+                        kpi_table.add_row(k.replace('_', ' ').title(), f"{v:.1f}")
+                    console.print(kpi_table)
+                # Show recommendations
+                recs = data.get('recommendations', [])
+                if recs:
+                    console.print("\n[bold]🎯 Recommendations:[/bold]")
+                    for rec in recs:
+                        console.print(f"• {rec}")
+                # Show trend analysis
+                trends = data.get('trend_analysis', {})
+                if trends:
+                    trend_table = Table(title="Trend Analysis", box=box.ROUNDED)
+                    trend_table.add_column("Metric", style="cyan")
+                    trend_table.add_column("Start", style="yellow")
+                    trend_table.add_column("End", style="green")
+                    trend_table.add_column("Change", style="blue")
+                    for k, v in trends.items():
+                        trend_table.add_row(k.replace('_', ' ').title(), str(v['start']), str(v['end']), f"{v['change']:.2f}")
+                    console.print(trend_table)
+            except json.JSONDecodeError:
+                # If JSON parsing fails, just display the raw output
+                console.print(Panel.fit(
+                    f"[bold blue]🏢 UPID Executive Dashboard[/bold blue]\n"
+                    f"Cluster: [cyan]{cluster_id}[/cyan]\n"
+                    f"Format: [yellow]Raw Output[/yellow]",
+                    title="Executive Dashboard Summary",
+                    border_style="blue"
+                ))
+                console.print(dashboard)
+        elif format in ['json', 'yaml', 'markdown', 'html']:
+            console.print(dashboard)
+    except Exception as e:
+        console.print(f"[red]✗ Failed to generate executive dashboard: {str(e)}[/red]")
+        raise click.Abort()
 
 @analyze.command()
 @click.argument('cluster_id')
@@ -380,4 +470,538 @@ def performance(ctx, cluster_id, format):
         
     except Exception as e:
         console.print(f"[red]✗ Failed to analyze performance: {str(e)}[/red]")
+        raise click.Abort()
+
+@analyze.command()
+@click.argument('cluster_id')
+@click.option('--days', '-d', default=30, type=int, help='Analysis period in days (max 90)')
+@click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
+@click.option('--detailed', is_flag=True, help='Show detailed pattern analysis')
+@click.pass_context
+def intelligence(ctx, cluster_id, days, format, detailed):
+    """Analyze cluster with intelligent business context"""
+    try:
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
+            console.print("[red]✗ Not authenticated. Please login first.[/red]")
+            raise click.Abort()
+        
+        # Initialize cluster detector with intelligent features
+        cluster_detector = ClusterDetector()
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console
+        ) as progress:
+            task = progress.add_task(f"Running intelligent analysis for cluster {cluster_id}...", total=None)
+            
+            # Collect intelligent metrics
+            intelligent_metrics = cluster_detector.collect_intelligent_metrics(cluster_id)
+            
+            # Perform intelligent pattern analysis
+            pattern_analysis = cluster_detector.analyze_intelligent_patterns(cluster_id)
+            
+            progress.update(task, completed=True)
+        
+        if format == 'table':
+            # Display intelligent analysis summary
+            console.print(Panel.fit(
+                f"[bold blue]🧠 UPID Intelligent Analysis[/bold blue]\n"
+                f"Cluster: [cyan]{cluster_id}[/cyan]\n"
+                f"Period: [yellow]{days}[/yellow] days\n"
+                f"Intelligence Level: [green]{pattern_analysis.get('analysis_comparison', {}).get('intelligence_level', 'basic')}[/green]",
+                title="Intelligent Analysis Summary",
+                border_style="blue"
+            ))
+            
+            # Business activity analysis
+            business_activity = intelligent_metrics.get('business_activity', {})
+            if business_activity:
+                console.print("\n[bold]💼 Business Activity Analysis:[/bold]")
+                activity_table = Table(box=box.ROUNDED)
+                activity_table.add_column("Metric", style="cyan")
+                activity_table.add_column("Value", style="yellow")
+                activity_table.add_column("Status", style="green")
+                
+                total_pods = business_activity.get('total_pods', 0)
+                business_active = business_activity.get('business_active_pods', 0)
+                idle_pods = business_activity.get('idle_pods', 0)
+                business_ratio = business_activity.get('business_activity_ratio', 0)
+                
+                activity_table.add_row("Total Pods", str(total_pods), "📊")
+                activity_table.add_row("Business Active", str(business_active), "✅" if business_active > 0 else "❌")
+                activity_table.add_row("Idle Pods", str(idle_pods), "💤" if idle_pods > 0 else "✅")
+                activity_table.add_row("Business Activity Ratio", f"{business_ratio:.1%}", "✅" if business_ratio > 0.3 else "⚠️")
+                
+                console.print(activity_table)
+            
+            # Resource efficiency analysis
+            resource_correlation = intelligent_metrics.get('resource_work_correlation', {})
+            if resource_correlation:
+                console.print("\n[bold]⚡ Resource Efficiency Analysis:[/bold]")
+                efficiency_table = Table(box=box.ROUNDED)
+                efficiency_table.add_column("Metric", style="cyan")
+                efficiency_table.add_column("Value", style="yellow")
+                efficiency_table.add_column("Status", style="green")
+                
+                efficiency_score = resource_correlation.get('efficiency_score', 0)
+                business_cpu = resource_correlation.get('business_cpu', 0)
+                idle_cpu = resource_correlation.get('idle_cpu', 0)
+                
+                efficiency_table.add_row("Efficiency Score", f"{efficiency_score:.1f}%", "✅" if efficiency_score > 70 else "⚠️" if efficiency_score > 50 else "❌")
+                efficiency_table.add_row("Business CPU", f"{business_cpu:.1f} cores", "✅" if business_cpu > 0 else "❌")
+                efficiency_table.add_row("Idle CPU", f"{idle_cpu:.1f} cores", "❌" if idle_cpu > 0 else "✅")
+                
+                console.print(efficiency_table)
+            
+            # Advanced pattern analysis
+            advanced_analysis = pattern_analysis.get('advanced_analysis', {})
+            if advanced_analysis:
+                console.print("\n[bold]🚀 Advanced Pattern Analysis:[/bold]")
+                
+                # Business intelligence
+                business_intelligence = advanced_analysis.get('business_intelligence', {})
+                if business_intelligence:
+                    console.print("\n[cyan]💼 Business Intelligence:[/cyan]")
+                    business_hours = business_intelligence.get('business_hours_analysis', {})
+                    for metric_type, data in business_hours.items():
+                        has_pattern = data.get('has_business_pattern', False)
+                        efficiency = data.get('business_hours_efficiency', 0)
+                        console.print(f"  {metric_type}: {'✅' if has_pattern else '❌'} business pattern (efficiency: {efficiency:.1f}%)")
+                
+                # Predictive insights
+                predictive_insights = advanced_analysis.get('predictive_insights', {})
+                if predictive_insights:
+                    console.print("\n[cyan]🔮 Predictive Insights:[/cyan]")
+                    trend_predictions = predictive_insights.get('trend_predictions', {})
+                    for metric_type, prediction in trend_predictions.items():
+                        direction = prediction.get('trend_direction', 'unknown')
+                        confidence = prediction.get('confidence', 0)
+                        console.print(f"  {metric_type}: {direction} trend (confidence: {confidence:.1f}%)")
+                
+                # Confidence metrics
+                confidence_metrics = advanced_analysis.get('confidence_metrics', {})
+                if confidence_metrics:
+                    console.print("\n[cyan]🎯 Confidence Metrics:[/cyan]")
+                    overall_confidence = confidence_metrics.get('overall_confidence', 0)
+                    console.print(f"  Overall Confidence: {overall_confidence:.1f}%")
+            
+            # Basic pattern analysis for comparison
+            basic_analysis = pattern_analysis.get('basic_analysis', {})
+            if basic_analysis and detailed:
+                console.print("\n[bold]📊 Basic Pattern Analysis (for comparison):[/bold]")
+                
+                patterns = basic_analysis.get('patterns', {})
+                if patterns:
+                    patterns_table = Table(title="Basic Patterns", box=box.ROUNDED)
+                    patterns_table.add_column("Resource", style="cyan")
+                    patterns_table.add_column("Pattern Type", style="yellow")
+                    patterns_table.add_column("Confidence", style="blue")
+                    
+                    for resource, resource_patterns in patterns.items():
+                        for pattern_name, pattern_data in resource_patterns.items():
+                            if isinstance(pattern_data, dict) and 'confidence' in pattern_data:
+                                patterns_table.add_row(
+                                    resource.upper(),
+                                    pattern_name.replace('_', ' ').title(),
+                                    f"{pattern_data['confidence']:.1f}%"
+                                )
+                    
+                    console.print(patterns_table)
+        
+        elif format == 'json':
+            import json
+            # Combine intelligent metrics and pattern analysis
+            combined_analysis = {
+                'intelligent_metrics': intelligent_metrics,
+                'pattern_analysis': pattern_analysis
+            }
+            console.print(json.dumps(combined_analysis, indent=2))
+            
+        elif format == 'yaml':
+            import yaml
+            # Combine intelligent metrics and pattern analysis
+            combined_analysis = {
+                'intelligent_metrics': intelligent_metrics,
+                'pattern_analysis': pattern_analysis
+            }
+            console.print(yaml.dump(combined_analysis, default_flow_style=False))
+        
+    except Exception as e:
+        console.print(f"[red]✗ Failed to run intelligent analysis: {str(e)}[/red]")
+        raise click.Abort()
+
+@analyze.command()
+@click.argument('cluster_id')
+@click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
+@click.option('--detailed', '-d', is_flag=True, help='Show detailed analysis')
+@click.pass_context
+def advanced(ctx, cluster_id, format, detailed):
+    """Perform advanced pattern analysis with business intelligence"""
+    try:
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
+            console.print("[red]✗ Not authenticated. Please login first.[/red]")
+            raise click.Abort()
+        
+        # Initialize cluster detector
+        cluster_detector = ClusterDetector()
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console
+        ) as progress:
+            task = progress.add_task(f"Running advanced analysis for cluster {cluster_id}...", total=None)
+            
+            # Perform advanced pattern analysis
+            advanced_analysis = cluster_detector.analyze_intelligent_patterns(cluster_id)
+            
+            progress.update(task, completed=True)
+        
+        if format == 'table':
+            # Display advanced analysis summary
+            analysis_comparison = advanced_analysis.get('analysis_comparison', {})
+            intelligence_level = analysis_comparison.get('intelligence_level', 'basic')
+            advanced_features = analysis_comparison.get('advanced_features', 0)
+            
+            console.print(Panel.fit(
+                f"[bold blue]🚀 UPID Advanced Analysis[/bold blue]\n"
+                f"Cluster: [cyan]{cluster_id}[/cyan]\n"
+                f"Intelligence Level: [green]{intelligence_level}[/green]\n"
+                f"Advanced Features: [yellow]{advanced_features}[/yellow]",
+                title="Advanced Analysis Summary",
+                border_style="blue"
+            ))
+            
+            # Advanced patterns
+            advanced_patterns = advanced_analysis.get('advanced_analysis', {}).get('advanced_patterns', {})
+            if advanced_patterns:
+                console.print("\n[bold]📊 Advanced Patterns:[/bold]")
+                for period, patterns in advanced_patterns.items():
+                    console.print(f"\n[cyan]{period}:[/cyan]")
+                    temporal_patterns = patterns.get('temporal_patterns', {})
+                    for metric_type, pattern_data in temporal_patterns.items():
+                        if pattern_data:
+                            data_points = pattern_data.get('data_points', 0)
+                            peak_count = pattern_data.get('peak_count', 0)
+                            console.print(f"  {metric_type}: {data_points} data points, {peak_count} peaks")
+            
+            # Business intelligence
+            business_intelligence = advanced_analysis.get('advanced_analysis', {}).get('business_intelligence', {})
+            if business_intelligence:
+                console.print("\n[bold]💼 Business Intelligence:[/bold]")
+                
+                business_hours = business_intelligence.get('business_hours_analysis', {})
+                for metric_type, data in business_hours.items():
+                    has_pattern = data.get('has_business_pattern', False)
+                    efficiency = data.get('business_hours_efficiency', 0)
+                    console.print(f"  {metric_type}: {'✅' if has_pattern else '❌'} business pattern (efficiency: {efficiency:.1f}%)")
+                
+                cost_optimization = business_intelligence.get('cost_optimization', {})
+                if cost_optimization:
+                    console.print("\n[cyan]💰 Cost Optimization:[/cyan]")
+                    efficiency_score = cost_optimization.get('cost_efficiency_score', 0)
+                    console.print(f"  Cost Efficiency Score: {efficiency_score:.1f}%")
+                    
+                    opportunities = cost_optimization.get('optimization_opportunities', [])
+                    for opp in opportunities:
+                        console.print(f"  {opp['metric_type']}: {opp['savings_percent']:.1f}% potential savings")
+            
+            # Predictive insights
+            predictive_insights = advanced_analysis.get('advanced_analysis', {}).get('predictive_insights', {})
+            if predictive_insights:
+                console.print("\n[bold]🔮 Predictive Insights:[/bold]")
+                
+                trend_predictions = predictive_insights.get('trend_predictions', {})
+                for metric_type, prediction in trend_predictions.items():
+                    direction = prediction.get('trend_direction', 'unknown')
+                    confidence = prediction.get('confidence', 0)
+                    console.print(f"  {metric_type}: {direction} trend (confidence: {confidence:.1f}%)")
+                
+                anomaly_predictions = predictive_insights.get('anomaly_predictions', {})
+                for metric_type, prediction in anomaly_predictions.items():
+                    probability = prediction.get('anomaly_probability', 0)
+                    risk_level = prediction.get('risk_level', 'low')
+                    console.print(f"  {metric_type}: {probability:.1f}% anomaly probability ({risk_level} risk)")
+            
+            # Efficiency analysis
+            efficiency_analysis = advanced_analysis.get('advanced_analysis', {}).get('efficiency_analysis', {})
+            if efficiency_analysis:
+                console.print("\n[bold]⚡ Efficiency Analysis:[/bold]")
+                
+                overall_efficiency = efficiency_analysis.get('overall_efficiency', {})
+                if overall_efficiency:
+                    score = overall_efficiency.get('score', 0)
+                    level = overall_efficiency.get('level', 'unknown')
+                    console.print(f"  Overall Efficiency: {score:.1f}% ({level})")
+                
+                resource_efficiency = efficiency_analysis.get('resource_efficiency', {})
+                for metric_type, efficiency in resource_efficiency.items():
+                    efficiency_score = efficiency.get('efficiency_score', 0)
+                    level = efficiency.get('efficiency_level', 'unknown')
+                    console.print(f"  {metric_type}: {efficiency_score:.1f}% ({level})")
+        
+        elif format == 'json':
+            import json
+            console.print(json.dumps(advanced_analysis, indent=2))
+            
+        elif format == 'yaml':
+            import yaml
+            console.print(yaml.dump(advanced_analysis, default_flow_style=False))
+        
+    except Exception as e:
+        console.print(f"[red]✗ Failed to run advanced analysis: {str(e)}[/red]")
+        raise click.Abort()
+
+@analyze.command()
+@click.argument('cluster_id')
+@click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
+@click.option('--detailed', '-d', is_flag=True, help='Show detailed analysis')
+@click.pass_context
+def idle(ctx, cluster_id, format, detailed):
+    """Analyze idle resources with intelligent detection"""
+    try:
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
+            console.print("[red]✗ Not authenticated. Please login first.[/red]")
+            raise click.Abort()
+        
+        # Initialize cluster detector
+        cluster_detector = ClusterDetector()
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console
+        ) as progress:
+            task = progress.add_task(f"Analyzing idle resources for cluster {cluster_id}...", total=None)
+            
+            # Get intelligent idle analysis
+            idle_analysis = cluster_detector.get_intelligent_idle_analysis(cluster_id)
+            
+            progress.update(task, completed=True)
+        
+        if format == 'table':
+            # Display idle analysis summary
+            idle_count = idle_analysis.get('idle_count', 0)
+            potential_savings = idle_analysis.get('potential_savings', {})
+            intelligent_insights = idle_analysis.get('intelligent_insights', [])
+            
+            console.print(Panel.fit(
+                f"[bold blue]💤 UPID Intelligent Idle Analysis[/bold blue]\n"
+                f"Cluster: [cyan]{cluster_id}[/cyan]\n"
+                f"Idle Pods: [yellow]{idle_count}[/yellow]\n"
+                f"Monthly Savings: [green]${potential_savings.get('estimated_monthly_savings', 0):.2f}[/green]",
+                title="Idle Analysis Summary",
+                border_style="blue"
+            ))
+            
+            # Idle pods table
+            idle_pods = idle_analysis.get('idle_pods', [])
+            if idle_pods:
+                console.print("\n[bold]🔍 Idle Pods:[/bold]")
+                idle_table = Table(box=box.ROUNDED)
+                idle_table.add_column("Pod", style="cyan")
+                idle_table.add_column("Namespace", style="blue")
+                idle_table.add_column("Idle Score", style="yellow")
+                idle_table.add_column("Confidence", style="green")
+                idle_table.add_column("Reasons", style="white")
+                
+                for pod in idle_pods[:10]:  # Show top 10
+                    name = pod.get('name', 'Unknown')
+                    namespace = pod.get('namespace', 'Unknown')
+                    idle_score = pod.get('idle_score', 0)
+                    confidence = pod.get('confidence', 0)
+                    reasons = ', '.join(pod.get('idle_reasons', []))
+                    
+                    idle_table.add_row(
+                        name,
+                        namespace,
+                        f"{idle_score:.1f}%",
+                        f"{confidence:.1f}%",
+                        reasons
+                    )
+                
+                console.print(idle_table)
+            
+            # Potential savings
+            if potential_savings:
+                console.print("\n[bold]💰 Potential Savings:[/bold]")
+                savings_table = Table(box=box.ROUNDED)
+                savings_table.add_column("Metric", style="cyan")
+                savings_table.add_column("Value", style="yellow")
+                savings_table.add_column("Status", style="green")
+                
+                cpu_cores = potential_savings.get('cpu_cores', 0)
+                memory_mb = potential_savings.get('memory_mb', 0)
+                monthly_savings = potential_savings.get('estimated_monthly_savings', 0)
+                savings_confidence = potential_savings.get('savings_confidence', 0)
+                
+                savings_table.add_row("CPU Cores", f"{cpu_cores:.1f}", "💾")
+                savings_table.add_row("Memory", f"{memory_mb:.1f} MB", "💾")
+                savings_table.add_row("Monthly Savings", f"${monthly_savings:.2f}", "💰")
+                savings_table.add_row("Savings Confidence", f"{savings_confidence:.1f}%", "✅" if savings_confidence > 80 else "⚠️")
+                
+                console.print(savings_table)
+            
+            # Intelligent insights
+            if intelligent_insights:
+                console.print("\n[bold]🧠 Intelligent Insights:[/bold]")
+                for insight in intelligent_insights:
+                    insight_type = insight.get('type', 'unknown')
+                    description = insight.get('description', 'No description')
+                    confidence = insight.get('confidence', 0)
+                    recommendation = insight.get('recommendation', 'No recommendation')
+                    
+                    console.print(f"\n[cyan]{insight_type}:[/cyan] {description}")
+                    console.print(f"  Confidence: {confidence:.1f}%")
+                    console.print(f"  Recommendation: {recommendation}")
+        
+        elif format == 'json':
+            import json
+            console.print(json.dumps(idle_analysis, indent=2))
+            
+        elif format == 'yaml':
+            import yaml
+            console.print(yaml.dump(idle_analysis, default_flow_style=False))
+        
+    except Exception as e:
+        console.print(f"[red]✗ Failed to analyze idle resources: {str(e)}[/red]")
+        raise click.Abort()
+
+@analyze.command()
+@click.argument('cluster_id')
+@click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
+@click.option('--detailed', '-d', is_flag=True, help='Show detailed analysis')
+@click.pass_context
+def recommendations(ctx, cluster_id, format, detailed):
+    """Get intelligent recommendations with business context"""
+    try:
+        config = ctx.obj['config']
+        auth_manager = ctx.obj['auth_manager']
+        
+        # Check if we're in local mode
+        if config.is_local_mode():
+            console.print("[yellow]🔧 Local mode - using mock data[/yellow]")
+        elif not auth_manager.is_authenticated():
+            console.print("[red]✗ Not authenticated. Please login first.[/red]")
+            raise click.Abort()
+        
+        # Initialize cluster detector
+        cluster_detector = ClusterDetector()
+        
+        with Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            console=console
+        ) as progress:
+            task = progress.add_task(f"Getting intelligent recommendations for cluster {cluster_id}...", total=None)
+            
+            # Get intelligent recommendations
+            recommendations = cluster_detector.get_intelligent_recommendations(cluster_id)
+            
+            progress.update(task, completed=True)
+        
+        if format == 'table':
+            # Display recommendations summary
+            business_recs = len(recommendations.get('business_recommendations', []))
+            technical_recs = len(recommendations.get('technical_recommendations', []))
+            cost_recs = len(recommendations.get('cost_optimization_recommendations', []))
+            capacity_recs = len(recommendations.get('capacity_planning_recommendations', []))
+            overall_priority = recommendations.get('overall_priority', 'medium')
+            
+            console.print(Panel.fit(
+                f"[bold blue]💡 UPID Intelligent Recommendations[/bold blue]\n"
+                f"Cluster: [cyan]{cluster_id}[/cyan]\n"
+                f"Overall Priority: [yellow]{overall_priority.upper()}[/yellow]\n"
+                f"Total Recommendations: [green]{business_recs + technical_recs + cost_recs + capacity_recs}[/green]",
+                title="Recommendations Summary",
+                border_style="blue"
+            ))
+            
+            # Business recommendations
+            business_recommendations = recommendations.get('business_recommendations', [])
+            if business_recommendations:
+                console.print("\n[bold]💼 Business Recommendations:[/bold]")
+                for i, rec in enumerate(business_recommendations, 1):
+                    priority = rec.get('priority', 'medium')
+                    description = rec.get('description', 'No description')
+                    action = rec.get('action', 'No action specified')
+                    confidence = rec.get('confidence', 0)
+                    
+                    priority_icon = "🔴" if priority == 'high' else "🟡" if priority == 'medium' else "🟢"
+                    console.print(f"{i}. {priority_icon} [bold]{description}[/bold]")
+                    console.print(f"   Action: {action}")
+                    console.print(f"   Confidence: {confidence:.1f}%")
+                    console.print()
+            
+            # Technical recommendations
+            technical_recommendations = recommendations.get('technical_recommendations', [])
+            if technical_recommendations:
+                console.print("\n[bold]⚙️  Technical Recommendations:[/bold]")
+                for i, rec in enumerate(technical_recommendations, 1):
+                    priority = rec.get('priority', 'medium')
+                    description = rec.get('description', 'No description')
+                    action = rec.get('action', 'No action specified')
+                    
+                    priority_icon = "🔴" if priority == 'high' else "🟡" if priority == 'medium' else "🟢"
+                    console.print(f"{i}. {priority_icon} [bold]{description}[/bold]")
+                    console.print(f"   Action: {action}")
+                    console.print()
+            
+            # Cost optimization recommendations
+            cost_recommendations = recommendations.get('cost_optimization_recommendations', [])
+            if cost_recommendations:
+                console.print("\n[bold]💰 Cost Optimization Recommendations:[/bold]")
+                for i, rec in enumerate(cost_recommendations, 1):
+                    priority = rec.get('priority', 'medium')
+                    description = rec.get('description', 'No description')
+                    savings = rec.get('savings_percent', 0)
+                    
+                    priority_icon = "🔴" if priority == 'high' else "🟡" if priority == 'medium' else "🟢"
+                    console.print(f"{i}. {priority_icon} [bold]{description}[/bold]")
+                    console.print(f"   Potential Savings: {savings:.1f}%")
+                    console.print()
+            
+            # Capacity planning recommendations
+            capacity_recommendations = recommendations.get('capacity_planning_recommendations', [])
+            if capacity_recommendations:
+                console.print("\n[bold]📈 Capacity Planning Recommendations:[/bold]")
+                for i, rec in enumerate(capacity_recommendations, 1):
+                    priority = rec.get('priority', 'medium')
+                    description = rec.get('description', 'No description')
+                    urgency = rec.get('urgency', 'medium')
+                    
+                    priority_icon = "🔴" if priority == 'high' else "🟡" if priority == 'medium' else "🟢"
+                    console.print(f"{i}. {priority_icon} [bold]{description}[/bold]")
+                    console.print(f"   Urgency: {urgency}")
+                    console.print()
+        
+        elif format == 'json':
+            import json
+            console.print(json.dumps(recommendations, indent=2))
+            
+        elif format == 'yaml':
+            import yaml
+            console.print(yaml.dump(recommendations, default_flow_style=False))
+        
+    except Exception as e:
+        console.print(f"[red]✗ Failed to get recommendations: {str(e)}[/red]")
         raise click.Abort()
