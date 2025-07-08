@@ -2,50 +2,49 @@
 
 **Kubernetes Resource Optimization Platform** - Enterprise-grade resource optimization with >99% accuracy and Netflix-level performance.
 
-## 🚀 Quick Start
+## 🚀 Installation (Mac & Linux)
 
-### Binary Installation (Recommended)
+### **Recommended: One-Line Install**
 
-Download and install the standalone binary, just like `kubectl`:
+Copy and run this command in your terminal:
 
-#### Linux/macOS
 ```bash
-# Download and install
-curl -LO https://github.com/vellankikoti/upid-cli/releases/latest/download/upid-linux.tar.gz
-tar -xzf upid-linux.tar.gz
-sudo mv upid /usr/local/bin/
-chmod +x /usr/local/bin/upid
-
-# Or use the installer
 curl -sSL https://raw.githubusercontent.com/vellankikoti/upid-cli/main/install.sh | bash
-
-# For Linux users: If binary is not available, build from source
-curl -sSL https://raw.githubusercontent.com/vellankikoti/upid-cli/main/build_linux.sh | bash
 ```
-
-#### Windows
-```powershell
-# Download and extract
-Invoke-WebRequest -Uri "https://github.com/vellankikoti/upid-cli/releases/latest/download/upid-windows.zip" -OutFile "upid-windows.zip"
-Expand-Archive -Path "upid-windows.zip" -DestinationPath "."
-# Add to PATH manually or run install.bat
-```
-
-#### Docker
-```bash
-docker pull vellankikoti/upid-cli:latest
-docker run --rm vellankikoti/upid-cli upid --help
-```
-
-### Python Package Installation
+- This will auto-detect your OS/arch, download the correct binary from the latest release, and install it to `/usr/local/bin/upid`.
+- After install, run:
 
 ```bash
-# Install from source
-git clone https://github.com/vellankikoti/upid-cli.git
-cd upid-cli
-pip install -r requirements.txt
-python -m upid.cli --help
+upid --help
 ```
+
+### **Manual Download (Alternative)**
+
+#### **For macOS (Apple Silicon/ARM64):**
+```bash
+curl -LO https://github.com/vellankikoti/upid-cli/releases/latest/download/upid-darwin-arm64
+chmod +x upid-darwin-arm64
+sudo mv upid-darwin-arm64 /usr/local/bin/upid
+upid --help
+```
+
+#### **For Linux (x86_64):**
+```bash
+curl -LO https://github.com/vellankikoti/upid-cli/releases/latest/download/upid-linux-x86_64
+chmod +x upid-linux-x86_64
+sudo mv upid-linux-x86_64 /usr/local/bin/upid
+upid --help
+```
+
+### **Uninstallation**
+```bash
+sudo rm /usr/local/bin/upid
+```
+
+### **Notes**
+- **Windows support:** Coming soon! For now, use WSL or Docker.
+- **PyPI install:** Coming soon! Use the binary install above.
+- **Requires:** `kubectl` and access to a Kubernetes cluster.
 
 ## 📋 Features
 
@@ -59,6 +58,8 @@ python -m upid.cli --help
 - **Rich UI**: Beautiful terminal interface with tables and progress bars
 
 ## 🛠️ Usage
+
+Run `upid --help` to see all available commands, or see [feature-demo.md](./feature-demo.md) for end-to-end demo scenarios.
 
 ### Basic Commands
 
