@@ -8,8 +8,17 @@ permissions:
   contents: write
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        arch: [x86_64]
+        include:
+          - os: ubuntu-latest
+            arch: aarch64
+
     steps:
       - uses: actions/checkout@v4
 
@@ -17,107 +26,53 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install dependencies
+      - name: Install deps (Linux only)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gcc-aarch64-linux-gnu \
+                                  libc6-dev-arm64-cross \
+                                  libssl-dev:arm64 \
+                                  zlib1g-dev:arm64
+
+      - name: Install Python deps
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller rich click requests pyyaml
 
-      - name: Build Linux binary
+      - name: Build binary
+        shell: bash
         run: |
-          pyinstaller --onefile --name upid-linux-x86_64 upid_main.py
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            pyinstaller --onefile --name upid-windows-x86_64 upid_main.py
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            pyinstaller --onefile --name upid-darwin-arm64 upid_main.py
+          elif [ "${{ matrix.arch }}" = "aarch64" ]; then
+            pyinstaller --onefile --name upid-linux-arm64 upid_main.py
+          else
+            pyinstaller --onefile --name upid-linux-x86_64 upid_main.py
+          fi
 
-      - name: Test Linux binary
+      - name: Test binary
+        shell: bash
         run: |
-          chmod +x ./dist/upid-linux-x86_64
-          ./dist/upid-linux-x86_64 --help
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            ./dist/upid-windows-x86_64.exe --help
+          elif [ "${{ runner.os }}" = "macOS" ]; then
+            chmod +x ./dist/upid-darwin-arm64
+            ./dist/upid-darwin-arm64 --help
+          elif [ "${{ matrix.arch }}" = "aarch64" ]; then
+            chmod +x ./dist/upid-linux-arm64
+            ./dist/upid-linux-arm64 --help
+          else
+            chmod +x ./dist/upid-linux-x86_64
+            ./dist/upid-linux-x86_64 --help
+          fi
 
-      - uses: softprops/action-gh-release@v2
+      - name: Upload binaries
+        uses: softprops/action-gh-release@v2
         with:
-          files: dist/upid-linux-x86_64
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-rhel:
-    runs-on: ubuntu-latest
-    container:
-      image: quay.io/centos/centos:stream9
-    steps:
-      - uses: actions/checkout@v4
-
-      - name: Install Python and pip
-        run: |
-          dnf install -y python3 python3-pip gcc redhat-rpm-config
-          python3 -m pip install --upgrade pip
-          pip install pyinstaller rich click requests pyyaml
-
-      - name: Build RHEL binary
-        run: |
-          pyinstaller --onefile --name upid-rhel-x86_64 upid_main.py
-
-      - name: Test RHEL binary
-        run: |
-          chmod +x ./dist/upid-rhel-x86_64
-          ./dist/upid-rhel-x86_64 --help
-
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: dist/upid-rhel-x86_64
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-macos:
-    runs-on: macos-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller rich click requests pyyaml
-
-      - name: Build macOS binary
-        run: |
-          pyinstaller --onefile --name upid-darwin-arm64 upid_main.py
-
-      - name: Test macOS binary
-        run: |
-          chmod +x ./dist/upid-darwin-arm64
-          ./dist/upid-darwin-arm64 --help
-
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: dist/upid-darwin-arm64
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.11'
-
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install pyinstaller rich click requests pyyaml
-
-      - name: Build Windows binary
-        run: |
-          pyinstaller --onefile --name upid-windows-x86_64 upid_main.py
-
-      - name: Test Windows binary
-        run: |
-          .\dist\upid-windows-x86_64.exe --help
-
-      - uses: softprops/action-gh-release@v2
-        with:
-          files: dist/upid-windows-x86_64.exe
+          files: |
+            dist/upid-*
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
