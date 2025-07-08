@@ -42,7 +42,7 @@ class CommandTest:
 class UPIDQATester:
     """Comprehensive QA testing platform for UPID CLI"""
     
-    def __init__(self, binary_path: str = "./releases/upid-darwin-arm64"):
+    def __init__(self, binary_path: str = "./dist/upid-darwin-arm64"):
         self.binary_path = binary_path
         self.test_results: List[CommandTest] = []
         self.start_time = time.time()

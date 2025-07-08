@@ -32,21 +32,14 @@ console = Console()
 @click.option('--config', '-c', help='Configuration file path')
 @click.option('--local', is_flag=True, help='Enable local mode for testing without authentication')
 @click.option('--verbose', '-v', is_flag=True, help='Enable verbose output')
-@click.option('--version', is_flag=True, help='Show version information')
+@click.version_option('1.0.0', '--version', '-V', message='UPID CLI v%(version)s\nKubernetes Resource Optimization Platform\n© 2024 Kubilitics - hello@kubilitics.com')
 @click.pass_context
-def cli(ctx, config, local, verbose, version):
+def cli(ctx, config, local, verbose):
     """
     UPID CLI - Kubernetes Resource Optimization Platform
     
     Optimize your Kubernetes clusters for cost, performance, and efficiency.
     """
-    # Show version if requested
-    if version:
-        console.print("[bold blue]UPID CLI v1.0.0[/bold blue]")
-        console.print("Kubernetes Resource Optimization Platform")
-        console.print("© 2024 Kubilitics - hello@kubilitics.com")
-        sys.exit(0)
-    
     # Initialize configuration
     ctx.obj = {}
     ctx.obj['config'] = Config(config)

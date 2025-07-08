@@ -50,21 +50,10 @@ class BinaryBuilder:
     def build_for_platform(self, platform_name: str, arch: str):
         """Build binary for specific platform"""
         console.print(f"\n[bold cyan]Building for {platform_name} {arch}...[/bold cyan]")
-        
         try:
-            # Set environment variables for cross-compilation
             env = os.environ.copy()
-            
-            if platform_name == "darwin":
-                env["PYTHONPATH"] = str(self.project_root)
-                target = f"upid-{platform_name}-{arch}"
-            elif platform_name == "linux":
-                env["PYTHONPATH"] = str(self.project_root)
-                target = f"upid-{platform_name}-{arch}"
-            else:
-                target = f"upid-{platform_name}-{arch}"
-            
-            # Build command
+            env["PYTHONPATH"] = str(self.project_root)
+            target = f"upid-{platform_name}-{arch}"
             cmd = [
                 sys.executable, "-m", "PyInstaller",
                 "--onefile",
@@ -76,34 +65,22 @@ class BinaryBuilder:
                 "--noconfirm",
                 str(self.project_root / "upid" / "cli.py")
             ]
-            
-            # Add platform-specific options
-            if platform_name == "darwin":
-                cmd.extend(["--target-architecture", "universal2"])
-            elif platform_name == "linux":
-                cmd.extend(["--target-architecture", "x86_64"])
-            
             console.print(f"Running: {' '.join(cmd)}")
-            
             result = subprocess.run(
                 cmd,
                 env=env,
                 capture_output=True,
                 text=True,
-                timeout=300  # 5 minutes timeout
+                timeout=300
             )
-            
             if result.returncode == 0:
                 binary_path = self.dist_dir / target
                 if platform_name == "windows":
                     binary_path = binary_path.with_suffix(".exe")
-                
                 if binary_path.exists():
-                    # Make executable on Unix systems
                     if platform_name != "windows":
                         os.chmod(binary_path, 0o755)
-                    
-                    size = binary_path.stat().st_size / (1024 * 1024)  # MB
+                    size = binary_path.stat().st_size / (1024 * 1024)
                     console.print(f"[green]✅ Built {target} ({size:.1f} MB)[/green]")
                     console.print(f"[green]   Location: {binary_path}[/green]")
                 else:
@@ -112,7 +89,6 @@ class BinaryBuilder:
                 console.print(f"[red]❌ Build failed for {platform_name} {arch}[/red]")
                 if result.stderr:
                     console.print(f"Error: {result.stderr[:200]}...")
-                    
         except subprocess.TimeoutExpired:
             console.print(f"[yellow]⚠️  Build timed out for {platform_name} {arch}[/yellow]")
         except Exception as e:
