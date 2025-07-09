@@ -25,117 +25,119 @@ UPID CLI provides **intelligent, automated Kubernetes resource optimization** wi
 
 ---
 
-## 🏗️ **COMPLETE SYSTEM ARCHITECTURE**
+## 🏗️ **Visual System Architecture**
 
-### **UPID Complete Architecture & Implementation Guide**
+```mermaid
+graph TB
+    %% CLI Interface Layer
+    subgraph CLI["🖥️ CLI Interface Layer"]
+        A1["🖥️ Local Mode\nDocker Desktop, minikube, k3s"]
+        A2["🔐 Authenticated Mode\nEKS/GKE/AKS, kubectl"]
+        A3["☁️ SaaS Mode\nMulti-tenant Web Dashboard"]
+    end
 
+    %% Authentication Layer
+    subgraph AUTH["🔐 Authentication & Authorization Layer"]
+        B1["🔍 Auto-Detect\nLocal K8s, Cloud Config"]
+        B2["🛡️ K8s RBAC\nServiceAcct, Namespace, ClusterRole"]
+        B3["👥 UPID RBAC\nMulti-tenant, Org/Team, Custom Perms"]
+    end
+
+    %% Intelligence Engine
+    subgraph INT["🧠 Core Intelligence Engine"]
+        C1["📊 Metrics Collection\nPod/Node metrics, Business logs, Request data"]
+        C2["🧠 Analysis Engine\nIdle detection, Cost analysis, Pattern ML, Confidence"]
+        C3["⚡ Optimization Engine\nResource optimization, Zero scaling, Safety checks, Rollback"]
+    end
+
+    %% Data Storage Layer
+    subgraph STORAGE["🗄️ Data Storage & Processing Layer"]
+        D1["🗄️ DuckDB\nTime-series DB, 90-day data, compression"]
+        D2["📋 PostgreSQL\nMetadata DB, User/Tenant, RBAC, Audit logs"]
+        D3["⚡ Redis\nCache, Query cache, Session store, Rate limiting"]
+    end
+
+    %% Cloud Integration Layer
+    subgraph CLOUD["☁️ Cloud Provider Integration Layer"]
+        E1["☁️ AWS\nCost Explorer, EKS Detection, EC2 Pricing, IAM Roles"]
+        E2["☁️ GCP\nBilling API, GKE Detection, GCE Pricing, IAM Binding"]
+        E3["☁️ Azure\nCost Mgmt API, AKS Detection, VM Pricing, RBAC"]
+    end
+
+    %% Kubernetes Integration Layer
+    subgraph K8S["🔧 Kubernetes Integration Layer"]
+        F1["🔍 Cluster Detection\nEKS/GKE/AKS, Local K8s, Cloud labels, Node metadata"]
+        F2["📈 Metrics API\nmetrics.k8s.io, Prometheus, cAdvisor, Kubelet"]
+        F3["🔧 Resource API\nCore API, Apps API, Custom resources, Events API"]
+    end
+
+    %% Data Flow Connections
+    A1 --> B1
+    A2 --> B2
+    A3 --> B3
+    B1 --> C1
+    B2 --> C2
+    B3 --> C3
+    C1 --> D1
+    C2 --> D2
+    C3 --> D3
+    D1 --> E1
+    D2 --> E2
+    D3 --> E3
+    E1 --> F1
+    E2 --> F2
+    E3 --> F3
 ```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                                UPID PLATFORM                                    │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                           CLI Interface Layer                                   │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                │
-│  │   Local Mode    │  │  Authenticated  │  │   SaaS Mode     │                │
-│  │ (no auth req'd) │  │   CLI Mode      │  │ (web dashboard) │                │
-│  │ Docker Desktop  │  │  EKS/GKE/AKS   │  │ Multi-tenant    │                │
-│  │ minikube, k3s   │  │    kubectl      │  │    Portal       │                │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘                │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                        Authentication & Authorization Layer                     │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                │
-│  │  Auto-Detect    │  │   K8s RBAC      │  │   UPID RBAC     │                │
-│  │  - Local K8s    │  │  - ServiceAcct  │  │  - Multi-tenant │                │
-│  │  - Cloud Config │  │  - Namespace    │  │  - Org/Team     │                │
-│  │  - No Auth      │  │  - ClusterRole  │  │  - Custom Perms │                │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘                │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                           Core Intelligence Engine                              │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                │
-│  │  Metrics        │  │   Analysis      │  │  Optimization   │                │
-│  │  Collection     │  │   Engine        │  │   Engine        │                │
-│  │                 │  │                 │  │                 │                │
-│  │ • Pod Metrics   │  │ • Idle Detection│  │ • Resource Opt  │                │
-│  │ • Node Metrics  │  │ • Cost Analysis │  │ • Zero Scaling  │                │
-│  │ • Business Logs │  │ • Pattern ML    │  │ • Safety Checks │                │
-│  │ • Request Data  │  │ • Confidence    │  │ • Rollback      │                │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘                │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                        Data Storage & Processing Layer                          │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                │
-│  │  Time-Series    │  │   Metadata      │  │   Cache Layer   │                │
-│  │   Database      │  │   Database      │  │                 │                │
-│  │                 │  │                 │  │                 │                │
-│  │ • DuckDB        │  │ • PostgreSQL    │  │ • Redis         │                │
-│  │ • 90-day data   │  │ • User/Tenant   │  │ • Query Cache   │                │
-│  │ • Compression   │  │ • RBAC Rules    │  │ • Session Store │                │
-│  │ • Partitioning  │  │ • Audit Logs    │  │ • Rate Limiting │                │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘                │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                      Cloud Provider Integration Layer                           │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                │
-│  │      AWS        │  │      GCP        │  │     Azure       │                │
-│  │                 │  │                 │  │                 │                │
-│  │ • Cost Explorer │  │ • Billing API   │  │ • Cost Mgmt API │                │
-│  │ • EKS Detection │  │ • GKE Detection │  │ • AKS Detection │                │
-│  │ • EC2 Pricing   │  │ • GCE Pricing   │  │ • VM Pricing    │                │
-│  │ • IAM Roles     │  │ • IAM Binding   │  │ • RBAC          │                │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘                │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                        Kubernetes Integration Layer                             │
-│  ┌─────────────────┐  ┌─────────────────┐  ┌─────────────────┐                │
-│  │  Cluster Auto   │  │   Metrics API   │  │   Resource API  │                │
-│  │   Detection     │  │                 │  │                 │                │
-│  │                 │  │                 │  │                 │                │
-│  │ • EKS/GKE/AKS   │  │ • metrics.k8s   │  │ • Core API      │                │
-│  │ • Local K8s     │  │ • Prometheus    │  │ • Apps API      │                │
-│  │ • Cloud Labels  │  │ • cAdvisor      │  │ • Custom Rsrc   │                │
-│  │ • Node Metadata │  │ • Kubelet       │  │ • Events API    │                │
-│  └─────────────────┘  └─────────────────┘  └─────────────────┘                │
-└─────────────────────────────────────────────────────────────────────────────────┘
-```
+
+---
+
+### **Legend**
+- 🖥️ CLI Interface: Local, Authenticated, SaaS
+- 🔐 Authentication: Auto-detect, RBAC, Multi-tenant
+- 🧠 Intelligence: Metrics, Analysis, Optimization
+- 🗄️ Storage: DuckDB, PostgreSQL, Redis
+- ☁️ Cloud: AWS, GCP, Azure
+- 🔧 Kubernetes: Cluster, Metrics, Resource APIs
+
+---
+
+*This diagram is GitHub-native and will render beautifully with icons and color-coded layers. For more details, see ARCHITECTURE_VISUAL.md.*
 
 ### **Data Flow Architecture**
 
-```
-┌─────────────────────────────────────────────────────────────────────────────────┐
-│                              Data Flow Diagram                                  │
-├─────────────────────────────────────────────────────────────────────────────────┤
-│                                                                                 │
-│  User Command: upid analyze pod nginx-123                                      │
-│       │                                                                        │
-│       ▼                                                                        │
-│  ┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐  │
-│  │   Auth Check    │────────▶│  Cluster Detect │────────▶│ Permission Check│  │
-│  │                 │         │                 │         │                 │  │
-│  │ • Local detect  │         │ • Cloud provider│         │ • Namespace     │  │
-│  │ • Cloud config  │         │ • K8s version   │         │ • Resource      │  │
-│  │ • UPID token    │         │ • Node labels   │         │ • Action        │  │
-│  └─────────────────┘         └─────────────────┘         └─────────────────┘  │
-│       │                             │                             │            │
-│       ▼                             ▼                             ▼            │
-│  ┌─────────────────┐         ┌─────────────────┐         ┌─────────────────┐  │
-│  │  Metrics Fetch  │────────▶│   Cost Fetch    │────────▶│   Intelligence  │  │
-│  │                 │         │                 │         │    Analysis     │  │
-│  │ • Pod metrics   │         │ • Cloud billing │         │                 │  │
-│  │ • Node metrics  │         │ • Instance costs│         │ • Idle detect   │  │
-│  │ • Request logs  │         │ • Pricing APIs  │         │ • Cost calc     │  │
-│  │ • Business data │         │ • Usage data    │         │ • Optimization  │  │
-│  └─────────────────┘         └─────────────────┘         └─────────────────┘  │
-│       │                             │                             │            │
-│       ▼                             ▼                             ▼            │
-│  ┌─────────────────────────────────────────────────────────────────────────┐  │
-│  │                        Response Generation                               │  │
-│  │                                                                         │  │
-│  │  • Confidence scoring                                                   │  │
-│  │  • Actionable recommendations                                           │  │
-│  │  • Cost savings calculations                                            │  │
-│  │  • Risk assessment                                                      │  │
-│  │  • Next steps suggestions                                               │  │
-│  └─────────────────────────────────────────────────────────────────────────┘  │
-│                                     │                                          │
-│                                     ▼                                          │
-│                           CLI/Dashboard Output                                 │
-└─────────────────────────────────────────────────────────────────────────────────┘
+```mermaid
+sequenceDiagram
+    participant User as 👤 User
+    participant CLI as 🖥️ CLI
+    participant Auth as 🔐 Auth
+    participant Cluster as 🔍 Cluster
+    participant Metrics as 📊 Metrics
+    participant Cost as 💰 Cost
+    participant Intel as 🧠 Intelligence
+    participant Response as 📤 Response
+    
+    User->>CLI: upid analyze pod nginx-123
+    CLI->>Auth: Auth Check
+    Auth->>Cluster: Cluster Detection
+    Cluster->>Auth: Permission Check
+    
+    Auth->>Metrics: Metrics Fetch
+    Auth->>Cost: Cost Fetch
+    
+    Metrics->>Intel: Pod/Node metrics
+    Cost->>Intel: Cloud billing data
+    
+    Intel->>Intel: Idle detection
+    Intel->>Intel: Cost calculation
+    Intel->>Intel: Optimization analysis
+    
+    Intel->>Response: Analysis results
+    Response->>CLI: Confidence scoring
+    Response->>CLI: Recommendations
+    Response->>CLI: Cost savings
+    Response->>CLI: Risk assessment
+    
+    CLI->>User: CLI/Dashboard Output
 ```
 
 ### **Why This Architecture?**
