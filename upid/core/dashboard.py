@@ -9,6 +9,7 @@ from typing import Dict, Any, List, Optional, Tuple
 import logging
 from dataclasses import dataclass
 from enum import Enum
+from pydantic import BaseModel
 
 logger = logging.getLogger(__name__)
 

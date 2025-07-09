@@ -20,16 +20,26 @@ from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.prompt import Prompt, Confirm
 from pathlib import Path
 try:
-    from .commands import auth, cluster, analyze, optimize, deploy, report, universal
+    from .commands import cluster, analyze, optimize, deploy, report, universal, intelligence, storage
+    from .commands.auth_universal import auth
+    from .commands.configurable_auth import configurable_auth
+    from .commands.onboarding import onboarding
+    from .commands.billing import billing
     from .core.config import Config
     from .core.auth import AuthManager
     from .core.api_client import UPIDAPIClient
+    from .auth import UniversalAuthenticator
 except ImportError:
     # Fallback for PyInstaller
-    from upid.commands import auth, cluster, analyze, optimize, deploy, report, universal
+    from upid.commands import cluster, analyze, optimize, deploy, report, universal, intelligence, storage
+    from upid.commands.auth_universal import auth
+    from upid.commands.configurable_auth import configurable_auth
+    from upid.commands.onboarding import onboarding
+    from upid.commands.billing import billing
     from upid.core.config import Config
     from upid.core.auth import AuthManager
     from upid.core.api_client import UPIDAPIClient
+    from upid.auth import UniversalAuthenticator
 
 console = Console()
 
@@ -77,15 +87,23 @@ def cli(ctx, config, local, verbose):
     # Initialize auth manager and API client
     ctx.obj['auth_manager'] = AuthManager(ctx.obj['config'])
     ctx.obj['api_client'] = UPIDAPIClient(ctx.obj['config'], ctx.obj['auth_manager'])
+    
+    # Initialize universal authenticator
+    ctx.obj['universal_auth'] = UniversalAuthenticator()
 
 # Add command groups
-cli.add_command(auth.auth)
+cli.add_command(auth)
+cli.add_command(configurable_auth)
+cli.add_command(onboarding)
 cli.add_command(cluster.cluster)
 cli.add_command(analyze.analyze)
 cli.add_command(optimize.optimize)
 cli.add_command(deploy.deploy)
 cli.add_command(report.report)
 cli.add_command(universal.universal)
+cli.add_command(billing)
+cli.add_command(intelligence.intelligence)
+cli.add_command(storage.storage)
 
 @cli.command()
 @click.pass_context

@@ -13,7 +13,7 @@ import json
 from datetime import datetime
 from .data_store import TimeSeriesDataStore
 from .analytics import PatternAnalyzer
-from .intelligence import IntelligentDataCollector
+# from .intelligence import IntelligentDataCollector  # Removed to avoid circular import
 from .advanced_analytics import AdvancedIntelligenceEngine
 from .confidence_optimizer import ConfidenceOptimizer
 from .business_impact import BusinessImpactCorrelator
@@ -30,7 +30,7 @@ class ClusterDetector:
         # Initialize intelligence components
         self.data_store = TimeSeriesDataStore()
         self.pattern_analyzer = PatternAnalyzer()
-        self.intelligent_collector = IntelligentDataCollector()
+        # self.intelligent_collector = IntelligentDataCollector()  # Removed to avoid circular import
         self.advanced_analytics = AdvancedIntelligenceEngine()
         
         # Initialize Phase 2 components

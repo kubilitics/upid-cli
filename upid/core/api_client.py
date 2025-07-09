@@ -8,6 +8,7 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime
 from .config import Config
 from .auth import AuthManager
+from .configurable_auth import ConfigurableAuthenticator
 
 class UPIDAPIClient:
     """UPID API Client for interacting with the UPID platform"""
@@ -21,6 +22,9 @@ class UPIDAPIClient:
         self.base_url = self.config.get('api_url')
         self.api_version = self.config.get('api_version', 'v1')
         self.local_mode = self.config.get('local_mode', False)
+        
+        # Initialize configurable authenticator
+        self.configurable_auth = ConfigurableAuthenticator()
 
     def _build_url(self, endpoint: str) -> str:
         if endpoint.startswith('http'):
@@ -42,7 +46,17 @@ class UPIDAPIClient:
         # Skip authentication in local mode
         if self.local_mode:
             return headers
+        
+        # Try configurable authentication first
+        try:
+            configurable_headers = self.configurable_auth.get_auth_headers()
+            if 'Authorization' in configurable_headers:
+                return configurable_headers
+        except Exception as e:
+            # Fall back to traditional auth if configurable auth fails
+            pass
             
+        # Fall back to traditional token-based authentication
         token = self.auth_manager.get_token()
         if token:
             headers['Authorization'] = f'Bearer {token}'
