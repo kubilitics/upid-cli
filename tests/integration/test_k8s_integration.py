@@ -43,10 +43,10 @@ class TestKubernetesIntegration:
         """Test basic Kubernetes cluster connectivity"""
         try:
             # Verify cluster is running
-            assert k8s_cluster.is_running()
+            assert k8s_cluster.get_wrapped_container().status == "running"
             
             # Test kubectl connectivity
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "get", "nodes"
             ])
             
@@ -65,12 +65,12 @@ class TestKubernetesIntegration:
         
         try:
             # Create namespace
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "create", "namespace", namespace_name
             ])
             
             # Verify namespace was created
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "get", "namespace", namespace_name
             ])
             
@@ -79,7 +79,7 @@ class TestKubernetesIntegration:
             
         finally:
             # Clean up namespace
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "namespace", namespace_name
             ])
 
@@ -108,7 +108,7 @@ spec:
         
         try:
             # Apply pod YAML
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=pod_yaml.encode())
             
@@ -116,7 +116,7 @@ spec:
             time.sleep(10)
             
             # Verify pod is running
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "get", "pod", pod_name, "-n", namespace
             ])
             
@@ -125,7 +125,7 @@ spec:
             
         finally:
             # Clean up pod
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "pod", pod_name, "-n", namespace
             ])
 
@@ -163,7 +163,7 @@ spec:
         
         try:
             # Apply deployment YAML
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=deployment_yaml.encode())
             
@@ -171,7 +171,7 @@ spec:
             time.sleep(15)
             
             # Verify deployment is running
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "get", "deployment", deployment_name, "-n", namespace
             ])
             
@@ -179,7 +179,7 @@ spec:
             assert "2/2" in result  # 2 replicas ready
             
             # Scale deployment
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "scale", "deployment", deployment_name, 
                 "--replicas=3", "-n", namespace
             ])
@@ -188,7 +188,7 @@ spec:
             time.sleep(10)
             
             # Verify scaling
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "get", "deployment", deployment_name, "-n", namespace
             ])
             
@@ -196,7 +196,7 @@ spec:
             
         finally:
             # Clean up deployment
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "deployment", deployment_name, "-n", namespace
             ])
 
@@ -265,7 +265,7 @@ spec:
         
         try:
             # Apply deployment
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=deployment_yaml.encode())
             
@@ -273,7 +273,7 @@ spec:
             time.sleep(10)
             
             # Apply HPA
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=hpa_yaml.encode())
             
@@ -281,7 +281,7 @@ spec:
             time.sleep(5)
             
             # Verify HPA is created
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "get", "hpa", hpa_name, "-n", namespace
             ])
             
@@ -290,10 +290,10 @@ spec:
             
         finally:
             # Clean up
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "hpa", hpa_name, "-n", namespace
             ])
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "deployment", deployment_name, "-n", namespace
             ])
 
@@ -329,7 +329,7 @@ spec:
         
         try:
             # Apply pod
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=pod_yaml.encode())
             
@@ -338,7 +338,7 @@ spec:
             
             # Get pod metrics (if metrics server is available)
             try:
-                result = k8s_cluster.exec_in_container([
+                result = k8s_cluster.exec([
                     "kubectl", "top", "pod", pod_name, "-n", namespace
                 ])
                 
@@ -351,7 +351,7 @@ spec:
             
         finally:
             # Clean up
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "pod", pod_name, "-n", namespace
             ])
 
@@ -383,19 +383,19 @@ data:
         
         try:
             # Apply ConfigMap
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=configmap_yaml.encode())
             
             # Verify ConfigMap is created
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "get", "configmap", configmap_name, "-n", namespace
             ])
             
             assert configmap_name in result
             
             # Get ConfigMap details
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "describe", "configmap", configmap_name, "-n", namespace
             ])
             
@@ -404,7 +404,7 @@ data:
             
         finally:
             # Clean up
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "configmap", configmap_name, "-n", namespace
             ])
 
@@ -431,12 +431,12 @@ data:
         
         try:
             # Apply Secret
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=secret_yaml.encode())
             
             # Verify Secret is created
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "get", "secret", secret_name, "-n", namespace
             ])
             
@@ -445,7 +445,7 @@ data:
             
         finally:
             # Clean up
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "secret", secret_name, "-n", namespace
             ])
 
@@ -501,7 +501,7 @@ spec:
         
         try:
             # Apply deployment
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=deployment_yaml.encode())
             
@@ -509,12 +509,12 @@ spec:
             time.sleep(10)
             
             # Apply Service
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=service_yaml.encode())
             
             # Verify Service is created
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "get", "service", service_name, "-n", namespace
             ])
             
@@ -523,10 +523,10 @@ spec:
             
         finally:
             # Clean up
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "service", service_name, "-n", namespace
             ])
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "deployment", deployment_name, "-n", namespace
             ])
 
@@ -536,7 +536,7 @@ spec:
     def test_k8s_node_info(self, k8s_cluster):
         """Test Kubernetes node information retrieval"""
         # Get node information
-        result = k8s_cluster.exec_in_container([
+        result = k8s_cluster.exec([
             "kubectl", "get", "nodes", "-o", "wide"
         ])
         
@@ -544,7 +544,7 @@ spec:
         assert "Ready" in result
         
         # Get node details
-        result = k8s_cluster.exec_in_container([
+        result = k8s_cluster.exec([
             "kubectl", "describe", "nodes"
         ])
         
@@ -577,7 +577,7 @@ spec:
         
         try:
             # Apply pod
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=pod_yaml.encode())
             
@@ -585,7 +585,7 @@ spec:
             time.sleep(10)
             
             # Get pod logs
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "logs", pod_name, "-n", namespace
             ])
             
@@ -593,7 +593,7 @@ spec:
             
         finally:
             # Clean up
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "pod", pod_name, "-n", namespace
             ])
 
@@ -606,7 +606,7 @@ spec:
         namespace = "test-namespace"
         
         # Create namespace
-        k8s_cluster.exec_in_container([
+        k8s_cluster.exec([
             "kubectl", "create", "namespace", namespace
         ])
         
@@ -627,12 +627,12 @@ spec:
         
         try:
             # Apply ResourceQuota
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=quota_yaml.encode())
             
             # Verify ResourceQuota is created
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "get", "resourcequota", quota_name, "-n", namespace
             ])
             
@@ -640,10 +640,10 @@ spec:
             
         finally:
             # Clean up
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "resourcequota", quota_name, "-n", namespace
             ])
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "namespace", namespace
             ])
 
@@ -656,7 +656,7 @@ spec:
         namespace = "test-namespace"
         
         # Create namespace
-        k8s_cluster.exec_in_container([
+        k8s_cluster.exec([
             "kubectl", "create", "namespace", namespace
         ])
         
@@ -680,12 +680,12 @@ spec:
         
         try:
             # Apply LimitRange
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "apply", "-f", "-"
             ], input=limit_range_yaml.encode())
             
             # Verify LimitRange is created
-            result = k8s_cluster.exec_in_container([
+            result = k8s_cluster.exec([
                 "kubectl", "get", "limitrange", limit_range_name, "-n", namespace
             ])
             
@@ -693,9 +693,9 @@ spec:
             
         finally:
             # Clean up
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "limitrange", limit_range_name, "-n", namespace
             ])
-            k8s_cluster.exec_in_container([
+            k8s_cluster.exec([
                 "kubectl", "delete", "namespace", namespace
             ]) 

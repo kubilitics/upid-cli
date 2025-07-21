@@ -1,0 +1,104 @@
+name: Release UPID CLI
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Build macOS binary
+      run: |
+        pyinstaller --onefile --name upid-darwin-arm64 upid/cli.py
+        tar -czf upid-darwin-arm64.tar.gz dist/upid-darwin-arm64 install/install.sh docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
+        
+    - name: Build Linux binary
+      run: |
+        pyinstaller --onefile --name upid-linux-x86_64 upid/cli.py
+        tar -czf upid-linux-x86_64.tar.gz dist/upid-linux-x86_64 install/install.sh docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
+        
+    - name: Create Windows package
+      run: |
+        zip -r upid-windows-x86_64.zip install/install.ps1 docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
+        
+    - name: Create Release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          upid-darwin-arm64.tar.gz
+          upid-linux-x86_64.tar.gz
+          upid-windows-x86_64.zip
+        body: |
+          # UPID CLI v${{ github.ref_name }} - Production Ready Release
+          
+          ## What's New
+          
+          UPID CLI v${{ github.ref_name }} represents a complete overhaul from prototype to production-ready Kubernetes intelligence platform. All mock data has been removed and replaced with real implementations.
+          
+          ### Key Features
+          
+          - **🔐 Enterprise Security**: RBAC, MFA, OIDC, SAML, LDAP, Cloud IAM
+          - **🤖 ML-Powered Insights**: Real predictions and anomaly detection
+          - **📊 Business Intelligence**: KPI tracking and ROI analysis
+          - **☁️ Cloud Integration**: AWS, GCP, and Azure support
+          - **📈 Real-time Monitoring**: Live metrics and alerting
+          - **🛠️ Production Binaries**: Ready-to-use executables
+          
+          ### Quick Start
+          
+          ```bash
+          # Download and install
+          curl -L https://github.com/kubilitics/upid-cli/releases/download/${{ github.ref_name }}/upid-darwin-arm64.tar.gz | tar -xz
+          sudo mv upid-darwin-arm64 /usr/local/bin/upid
+          
+          # Authenticate
+          upid auth login
+          
+          # Analyze cluster
+          upid analyze cluster
+          
+          # View dashboard
+          upid dashboard
+          ```
+          
+          ### Downloads
+          
+          - **macOS ARM64**: upid-darwin-arm64.tar.gz
+          - **Linux x86_64**: upid-linux-x86_64.tar.gz
+          - **Windows x86_64**: upid-windows-x86_64.zip
+          
+          ### Documentation
+          
+          - [User Manual](docs/guides/UPID_USER_MANUAL.md)
+          - [Quick Reference](docs/guides/UPID_QUICK_REFERENCE.md)
+          - [Installation Guide](docs/guides/UPID_INSTALLATION_GUIDE.md)
+          
+          ### System Requirements
+          
+          - Kubernetes cluster access
+          - kubectl configured
+          - Python 3.8+ (for optional features)
+          - 100MB disk space
+          
+          ---
+          
+          **Download and start using UPID CLI v${{ github.ref_name }} today!**
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

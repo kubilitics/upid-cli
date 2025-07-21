@@ -62,7 +62,7 @@ class Config:
                     else:
                         return yaml.safe_load(f) or {}
             except Exception as e:
-                print(f"Warning: Could not load config: {e}")
+                print(f"Warning: Could not load config: {e}. Falling back to defaults.")
                 return self._get_default_config()
         else:
             return self._get_default_config()
@@ -102,14 +102,25 @@ class Config:
         }
     
     def get(self, key: str, default: Any = None) -> Any:
-        """Get configuration value"""
+        """Get configuration value with robust fallback to defaults"""
+        # If config is empty or corrupted, use defaults
+        if not self._config:
+            return self.DEFAULTS.get(key, default)
+        
         keys = key.split('.')
         value = self._config
         for k in keys:
             if isinstance(value, dict) and k in value:
                 value = value[k]
             else:
-                return default
+                # Key not found, fall back to defaults
+                return self.DEFAULTS.get(key, default)
+        
+        # If value is None, empty, or falsy for important keys, use defaults
+        if value is None or value == "":
+            return self.DEFAULTS.get(key, default)
+        
+        # Special handling for specific keys that should have defaults
         if key == 'optimization_strategy' and not value:
             return 'balanced'
         if key == 'safety_level' and not value:
@@ -124,6 +135,7 @@ class Config:
             return 'v1'
         if key == 'api_url' and not value:
             return 'https://api.upid.io'
+        
         return value
     
     def set(self, key: str, value: Any) -> None:

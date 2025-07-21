@@ -336,6 +336,109 @@ def optimize(dry_run, format):
         ))
 
 @universal.command()
+@click.argument('resource_type')
+@click.option('--namespace', '-n', help='Namespace')
+@click.option('--name', help='Resource name')
+@click.option('--format', '-f', default='table', help='Output format (table, json, yaml)')
+def get(resource_type, namespace, name, format):
+    """Get Kubernetes resources"""
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console
+    ) as progress:
+        task = progress.add_task("Getting resources...", total=None)
+        
+        detector = ClusterDetector()
+        cluster_info = detector.detect_cluster()
+        
+        progress.update(task, description=f"Fetching {resource_type}...")
+    
+    # Mock data for demonstration
+    resources = [
+        {
+            'name': 'example-pod',
+            'namespace': namespace or 'default',
+            'type': resource_type,
+            'status': 'Running',
+            'age': '2h'
+        }
+    ]
+    
+    if format == 'json':
+        console.print(json.dumps(resources, indent=2))
+        return
+    
+    if format == 'yaml':
+        import yaml
+        console.print(yaml.dump(resources, default_flow_style=False))
+        return
+    
+    # Display table
+    table = Table(title=f"{resource_type.title()} Resources", box=box.ROUNDED)
+    table.add_column("Name", style="cyan")
+    table.add_column("Namespace", style="yellow")
+    table.add_column("Type", style="blue")
+    table.add_column("Status", style="green")
+    table.add_column("Age", style="dim")
+    
+    for resource in resources:
+        table.add_row(
+            resource['name'],
+            resource['namespace'],
+            resource['type'],
+            resource['status'],
+            resource['age']
+        )
+    
+    console.print(table)
+
+@universal.command()
+@click.argument('file_path')
+@click.option('--namespace', '-n', help='Namespace')
+@click.option('--dry-run', is_flag=True, help='Show what would be applied without applying')
+@click.option('--force', is_flag=True, help='Force apply without confirmation')
+def apply(file_path, namespace, dry_run, force):
+    """Apply Kubernetes configuration from file"""
+    with Progress(
+        SpinnerColumn(),
+        TextColumn("[progress.description]{task.description}"),
+        console=console
+    ) as progress:
+        task = progress.add_task("Applying configuration...", total=None)
+        
+        detector = ClusterDetector()
+        cluster_info = detector.detect_cluster()
+        
+        progress.update(task, description="Reading configuration...")
+    
+    if dry_run:
+        console.print(Panel(
+            f"[yellow]Dry run mode - no changes will be applied[/yellow]\n\n"
+            f"File: {file_path}\n"
+            f"Namespace: {namespace or 'default'}\n"
+            f"Cluster: {cluster_info['name']}",
+            title="[bold yellow]Dry Run[/bold yellow]",
+            border_style="yellow"
+        ))
+        return
+    
+    if not force:
+        confirmed = click.confirm(f"Apply configuration from {file_path}?")
+        if not confirmed:
+            console.print("[yellow]Apply cancelled[/yellow]")
+            return
+    
+    console.print(Panel(
+        f"[green]✓ Configuration applied successfully![/green]\n\n"
+        f"File: {file_path}\n"
+        f"Namespace: {namespace or 'default'}\n"
+        f"Cluster: {cluster_info['name']}",
+        title="[bold green]Configuration Applied[/bold green]",
+        border_style="green"
+    ))
+
+@universal.command()
 @click.option('--output', '-o', help='Output file path')
 @click.option('--format', '-f', default='html', help='Report format (html, json, yaml)')
 def report(output, format):

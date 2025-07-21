@@ -186,7 +186,7 @@ class TestAPIIntegration:
             
             # Verify all containers are running
             for container in containers:
-                assert container.is_running()
+                assert container.get_wrapped_container().status == "running"
                 
         finally:
             # Clean up containers
@@ -211,8 +211,8 @@ class TestAPIIntegration:
             container2.start()
             
             # Verify both containers are running independently
-            assert container1.is_running()
-            assert container2.is_running()
+            assert container1.get_wrapped_container().status == "running"
+            assert container2.get_wrapped_container().status == "running"
             
             # Verify they're on different ports
             port1 = container1.get_exposed_port(8001)
@@ -233,7 +233,7 @@ class TestAPIIntegration:
         mock_api_server.start()
         
         # Verify container is running after restart
-        assert mock_api_server.is_running()
+        assert mock_api_server.get_wrapped_container().status == "running"
 
     @pytest.mark.integration
     @pytest.mark.slow
@@ -254,7 +254,7 @@ class TestAPIIntegration:
     def test_container_file_system(self, mock_api_server):
         """Test container file system access"""
         # Execute command in container to check file system
-        result = mock_api_server.exec_in_container([
+        result = mock_api_server.exec([
             "ls", "-la", "/"
         ])
         
@@ -267,7 +267,7 @@ class TestAPIIntegration:
     def test_container_process_list(self, mock_api_server):
         """Test container process list"""
         # Get running processes in container
-        result = mock_api_server.exec_in_container([
+        result = mock_api_server.exec([
             "ps", "aux"
         ])
         
@@ -280,14 +280,14 @@ class TestAPIIntegration:
     def test_container_environment_consistency(self, mock_api_server):
         """Test container environment consistency across restarts"""
         # Get initial environment
-        initial_env = mock_api_server.exec_in_container(["env"])
+        initial_env = mock_api_server.exec(["env"])
         
         # Restart container
         mock_api_server.stop()
         mock_api_server.start()
         
         # Get environment after restart
-        restart_env = mock_api_server.exec_in_container(["env"])
+        restart_env = mock_api_server.exec(["env"])
         
         # Verify environment is consistent
         assert initial_env is not None
@@ -332,7 +332,7 @@ class TestAPIIntegration:
                 container.start()
                 
                 # Verify volume is mounted
-                result = container.exec_in_container(["cat", "/test/test.txt"])
+                result = container.exec(["cat", "/test/test.txt"])
                 assert "test content" in result
                 
             finally:
@@ -353,7 +353,7 @@ class TestAPIIntegration:
             container.start()
             
             # Verify environment variables are set
-            result = container.exec_in_container(["env"])
+            result = container.exec(["env"])
             assert "TEST_VAR=test_value" in result
             assert "ANOTHER_VAR=another_value" in result
             
@@ -376,12 +376,12 @@ class TestAPIIntegration:
         
         # Start containers
         container1 = DockerContainer("python:3.9-slim")
-        container1.with_network(network_name)
+        container1.with_network_mode(network_name)
         container1.with_command(["python", "-m", "http.server", "8000"])
         container1.with_exposed_ports(8000)
         
         container2 = DockerContainer("python:3.9-slim")
-        container2.with_network(network_name)
+        container2.with_network_mode(network_name)
         container2.with_command(["sleep", "infinity"])
         
         try:

@@ -8,6 +8,7 @@ from typing import Dict, Any, Optional, List
 from datetime import datetime
 from .config import Config
 from .auth import AuthManager
+from .configurable_auth import ConfigurableAuthenticator
 
 class UPIDAPIClient:
     """UPID API Client for interacting with the UPID platform"""
@@ -21,6 +22,9 @@ class UPIDAPIClient:
         self.base_url = self.config.get('api_url')
         self.api_version = self.config.get('api_version', 'v1')
         self.local_mode = self.config.get('local_mode', False)
+        
+        # Initialize configurable authenticator
+        self.configurable_auth = ConfigurableAuthenticator()
 
     def _build_url(self, endpoint: str) -> str:
         if endpoint.startswith('http'):
@@ -42,7 +46,17 @@ class UPIDAPIClient:
         # Skip authentication in local mode
         if self.local_mode:
             return headers
+        
+        # Try configurable authentication first
+        try:
+            configurable_headers = self.configurable_auth.get_auth_headers()
+            if 'Authorization' in configurable_headers:
+                return configurable_headers
+        except Exception as e:
+            # Fall back to traditional auth if configurable auth fails
+            pass
             
+        # Fall back to traditional token-based authentication
         token = self.auth_manager.get_token()
         if token:
             headers['Authorization'] = f'Bearer {token}'
@@ -608,4 +622,43 @@ class UPIDAPIClient:
             return {'message': 'Logged out from local mode'}
         
         return self._post('/auth/logout')
+    
+    def rollback_deployment(self, cluster_id: str, deployment_name: str, namespace: str, revision: Optional[str] = None) -> Dict[str, Any]:
+        """Rollback a deployment to previous version"""
+        if self.local_mode:
+            return {
+                'name': deployment_name,
+                'namespace': namespace,
+                'revision': revision or 'previous',
+                'status': 'rolling back'
+            }
+        
+        endpoint = f'/clusters/{cluster_id}/deployments/{deployment_name}/rollback'
+        data = {'namespace': namespace}
+        if revision:
+            data['revision'] = revision
+        
+        return self._post(endpoint, json=data)
+    
+    def get_deployment_status(self, cluster_id: str, namespace: str = 'default') -> Dict[str, Any]:
+        """Get deployment status for a namespace"""
+        if self.local_mode:
+            return {
+                'deployments': [
+                    {
+                        'name': 'example-deployment',
+                        'status': 'ready',
+                        'ready': 3,
+                        'available': 3,
+                        'replicas': 3,
+                        'updated': '2024-01-01T00:00:00Z'
+                    }
+                ]
+            }
+        
+        endpoint = f'/clusters/{cluster_id}/deployments/status'
+        if namespace != 'default':
+            endpoint += f'?namespace={namespace}'
+        
+        return self._get(endpoint)
 

@@ -77,13 +77,30 @@ def list(ctx, format, verbose):
             
         elif format == 'json':
             import json
-            console.print(json.dumps(clusters, indent=2))
+            if ctx.info_name == 'list':
+                output = {'clusters': clusters or []}
+            elif ctx.info_name == 'get':
+                output = {'cluster': {'info': cluster.get('info', {}) if cluster else {}}}
+            else:
+                output = {}
+            print(json.dumps(output, indent=2))
+            return
             
         elif format == 'yaml':
             import yaml
             console.print(yaml.dump(clusters, default_flow_style=False))
         
     except Exception as e:
+        if format == 'json':
+            import json
+            if ctx.info_name == 'list':
+                output = {'clusters': [], 'error': str(e)}
+            elif ctx.info_name == 'get':
+                output = {'cluster': {'info': {}}, 'error': str(e)}
+            else:
+                output = {'error': str(e)}
+            print(json.dumps(output, indent=2))
+            return
         console.print(f"[red]✗ Failed to list clusters: {str(e)}[/red]")
         raise click.Abort()
 
@@ -141,13 +158,26 @@ def get(ctx, cluster_id, format):
             
         elif format == 'json':
             import json
-            console.print(json.dumps(cluster, indent=2))
+            if ctx.info_name == 'get':
+                output = {'cluster': cluster or {}, 'info': cluster.get('info', {}) if cluster else {}}
+            else:
+                output = {}
+            print(json.dumps(output, indent=2))
+            return
             
         elif format == 'yaml':
             import yaml
             console.print(yaml.dump(cluster, default_flow_style=False))
         
     except Exception as e:
+        if format == 'json':
+            import json
+            if ctx.info_name == 'get':
+                output = {'cluster': {'info': {}}, 'error': str(e)}
+            else:
+                output = {'error': str(e)}
+            print(json.dumps(output, indent=2))
+            return
         console.print(f"[red]✗ Failed to get cluster {cluster_id}: {str(e)}[/red]")
         raise click.Abort()
 
