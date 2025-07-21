@@ -102,33 +102,42 @@ async def get_analysis_result(
 ):
     """Get specific analysis result."""
     try:
-        # In production, this would retrieve from storage
-        # For now, return mock data
-        return {
-            "analysis_id": analysis_id,
-            "timestamp": datetime.now().isoformat(),
-            "status": "completed",
-            "cluster_info": {
-                "name": "test-cluster",
-                "nodes": 3,
-                "pods": 15,
-                "namespaces": 5
-            },
-            "resource_analysis": {
-                "cpu_utilization": 65.2,
-                "memory_utilization": 78.5,
-                "storage_utilization": 45.1,
-                "network_utilization": 32.8
-            },
-            "recommendations": [
-                {
-                    "type": "resource_optimization",
-                    "priority": "high",
-                    "description": "Consider scaling down underutilized pods",
-                    "potential_savings": "$150/month"
-                }
-            ]
-        }
+        from ..core.storage_integration import StorageIntegration
+        from ..core.intelligence import IntelligenceEngine
+        
+        # Get analysis from storage
+        with StorageIntegration() as storage:
+            analysis_data = await storage.get_analysis_result(analysis_id)
+            
+            if not analysis_data:
+                # If not found in storage, generate new analysis
+                intelligence_engine = IntelligenceEngine()
+                analysis_data = await intelligence_engine.analyze_cluster_intelligence(
+                    cluster_id=analysis_id,
+                    time_range="24h"
+                )
+                
+                # Store the analysis result
+                await storage.store_analysis_result(analysis_id, analysis_data)
+            
+            return {
+                "analysis_id": analysis_id,
+                "timestamp": datetime.now().isoformat(),
+                "status": "completed",
+                "cluster_info": analysis_data.get('cluster_info', {
+                    "name": analysis_id,
+                    "nodes": 0,
+                    "pods": 0,
+                    "namespaces": 0
+                }),
+                "resource_analysis": analysis_data.get('resource_analysis', {
+                    "cpu_utilization": 0.0,
+                    "memory_utilization": 0.0,
+                    "storage_utilization": 0.0,
+                    "network_utilization": 0.0
+                }),
+                "recommendations": analysis_data.get('recommendations', [])
+            }
         
     except Exception as e:
         logger.error(f"Get analysis error: {e}")
@@ -263,7 +272,7 @@ async def get_analysis_summary(
             "status": "success",
             "summary": {
                 "total_analyses": 15,
-                "recent_analyses": 5,
+            "recent_analyses": 5,
                 "optimization_opportunities": 23,
                 "potential_savings": "$2,450/month"
             },

@@ -10,7 +10,8 @@ from typing import Optional, Dict, Any
 from datetime import datetime
 
 from ..core.intelligence import IntelligenceEngine
-from ..core.business_intelligence import BusinessMetric, BusinessMetricType
+from ..core.business_intelligence import BusinessMetricType
+from ..core.business_impact import BusinessMetric
 
 
 @click.group()

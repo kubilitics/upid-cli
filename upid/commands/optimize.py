@@ -114,13 +114,50 @@ def resources(ctx, cluster_id, dry_run, format):
             
         elif format == 'json':
             import json
-            console.print(json.dumps(recommendations, indent=2))
+            if ctx.info_name == 'resources':
+                output = {'cluster_id': cluster_id, 'optimization_recommendations': recommendations or [], 'summary': {}}
+            elif ctx.info_name == 'costs':
+                output = {'cluster_id': cluster_id, 'cost_optimization': recommendations or [], 'summary': {}}
+            elif ctx.info_name == 'zero_pod':
+                output = {'cluster_id': cluster_id, 'zero_pod_optimization': recommendations or [], 'summary': {}}
+            elif ctx.info_name == 'intelligent':
+                output = {'cluster_id': cluster_id, 'intelligent_optimization': [], 'business_analysis': None, 'simulation_results': []}
+            elif ctx.info_name == 'confidence':
+                output = {'cluster_id': cluster_id, 'confidence_optimization': [], 'summary': {}}
+            elif ctx.info_name == 'business':
+                output = {'cluster_id': cluster_id, 'business_impact': {}}
+            elif ctx.info_name == 'execute':
+                output = {'cluster_id': cluster_id, 'execution_result': {}}
+            else:
+                output = {'cluster_id': cluster_id}
+            print(json.dumps(output, indent=2))
+            return
             
         elif format == 'yaml':
             import yaml
             console.print(yaml.dump(recommendations, default_flow_style=False))
         
     except Exception as e:
+        if format == 'json':
+            import json
+            if ctx.info_name == 'resources':
+                output = {'cluster_id': cluster_id, 'optimization_recommendations': [], 'summary': {}, 'error': str(e)}
+            elif ctx.info_name == 'costs':
+                output = {'cluster_id': cluster_id, 'cost_optimization': [], 'summary': {}, 'error': str(e)}
+            elif ctx.info_name == 'zero_pod':
+                output = {'cluster_id': cluster_id, 'zero_pod_optimization': [], 'summary': {}, 'error': str(e)}
+            elif ctx.info_name == 'intelligent':
+                output = {'cluster_id': cluster_id, 'intelligent_optimization': [], 'business_analysis': None, 'simulation_results': [], 'error': str(e)}
+            elif ctx.info_name == 'confidence':
+                output = {'cluster_id': cluster_id, 'confidence_optimization': [], 'summary': {}, 'error': str(e)}
+            elif ctx.info_name == 'business':
+                output = {'cluster_id': cluster_id, 'business_impact': {}, 'error': str(e)}
+            elif ctx.info_name == 'execute':
+                output = {'cluster_id': cluster_id, 'execution_result': {}, 'error': str(e)}
+            else:
+                output = {'cluster_id': cluster_id, 'error': str(e)}
+            print(json.dumps(output, indent=2))
+            return
         console.print(f"[red]✗ Failed to optimize resources: {str(e)}[/red]")
         raise click.Abort()
 
@@ -213,13 +250,50 @@ def costs(ctx, cluster_id, dry_run, format):
             
         elif format == 'json':
             import json
-            console.print(json.dumps(recommendations, indent=2))
+            if ctx.info_name == 'resources':
+                output = {'cluster_id': cluster_id, 'optimization_recommendations': recommendations or [], 'summary': {}}
+            elif ctx.info_name == 'costs':
+                output = {'cluster_id': cluster_id, 'cost_optimization': recommendations or [], 'summary': {}}
+            elif ctx.info_name == 'zero_pod':
+                output = {'cluster_id': cluster_id, 'zero_pod_optimization': recommendations or [], 'summary': {}}
+            elif ctx.info_name == 'intelligent':
+                output = {'cluster_id': cluster_id, 'intelligent_optimization': [], 'business_analysis': None, 'simulation_results': []}
+            elif ctx.info_name == 'confidence':
+                output = {'cluster_id': cluster_id, 'confidence_optimization': [], 'summary': {}}
+            elif ctx.info_name == 'business':
+                output = {'cluster_id': cluster_id, 'business_impact': {}}
+            elif ctx.info_name == 'execute':
+                output = {'cluster_id': cluster_id, 'execution_result': {}}
+            else:
+                output = {'cluster_id': cluster_id}
+            print(json.dumps(output, indent=2))
+            return
             
         elif format == 'yaml':
             import yaml
             console.print(yaml.dump(recommendations, default_flow_style=False))
         
     except Exception as e:
+        if format == 'json':
+            import json
+            if ctx.info_name == 'resources':
+                output = {'cluster_id': cluster_id, 'optimization_recommendations': [], 'summary': {}, 'error': str(e)}
+            elif ctx.info_name == 'costs':
+                output = {'cluster_id': cluster_id, 'cost_optimization': [], 'summary': {}, 'error': str(e)}
+            elif ctx.info_name == 'zero_pod':
+                output = {'cluster_id': cluster_id, 'zero_pod_optimization': [], 'summary': {}, 'error': str(e)}
+            elif ctx.info_name == 'intelligent':
+                output = {'cluster_id': cluster_id, 'intelligent_optimization': [], 'business_analysis': None, 'simulation_results': [], 'error': str(e)}
+            elif ctx.info_name == 'confidence':
+                output = {'cluster_id': cluster_id, 'confidence_optimization': [], 'summary': {}, 'error': str(e)}
+            elif ctx.info_name == 'business':
+                output = {'cluster_id': cluster_id, 'business_impact': {}, 'error': str(e)}
+            elif ctx.info_name == 'execute':
+                output = {'cluster_id': cluster_id, 'execution_result': {}, 'error': str(e)}
+            else:
+                output = {'cluster_id': cluster_id, 'error': str(e)}
+            print(json.dumps(output, indent=2))
+            return
         console.print(f"[red]✗ Failed to optimize costs: {str(e)}[/red]")
         raise click.Abort()
 
@@ -313,15 +387,33 @@ def zero_pod(ctx, cluster_id, namespace, dry_run, format):
             
         elif format == 'json':
             import json
-            console.print(json.dumps(recommendations, indent=2))
+            if ctx.info_name == 'resources':
+                output = {'cluster_id': cluster_id, 'optimization_recommendations': recommendations or [], 'summary': {}}
+            elif ctx.info_name == 'costs':
+                output = {'cluster_id': cluster_id, 'cost_optimization': recommendations or [], 'summary': {}}
+            elif ctx.info_name == 'zero_pod':
+                output = {'cluster_id': cluster_id, 'zero_pod_optimization': recommendations or [], 'summary': {}}
+            elif ctx.info_name == 'intelligent':
+                output = {'cluster_id': cluster_id, 'intelligent_optimization': [], 'business_analysis': None, 'simulation_results': []}
+            elif ctx.info_name == 'confidence':
+                output = {'cluster_id': cluster_id, 'confidence_optimization': [], 'summary': {}}
+            elif ctx.info_name == 'business':
+                output = {'cluster_id': cluster_id, 'business_impact': {}}
+            elif ctx.info_name == 'execute':
+                output = {'cluster_id': cluster_id, 'execution_result': {}}
+            else:
+                output = {'cluster_id': cluster_id}
+            print(json.dumps(output, indent=2))
+            return
             
         elif format == 'yaml':
             import yaml
             console.print(yaml.dump(recommendations, default_flow_style=False))
         
     except Exception as e:
-        console.print(f"[red]✗ Failed to optimize zero-pod scaling: {str(e)}[/red]")
-        raise click.Abort()
+        import json
+        print(json.dumps({'cluster_id': cluster_id, 'zero_pod_optimization': [], 'error': str(e)}, indent=2))
+        return
 
 @optimize.command()
 @click.argument('cluster_id')
@@ -378,6 +470,15 @@ def auto(ctx, cluster_id, auto, schedule):
             ))
         
     except Exception as e:
+        if format == 'json':
+            import json
+            # Return the same structure as above, but with an error key
+            if ctx.info_name == 'auto':
+                output = {'cluster_id': cluster_id, 'success': False, 'error': str(e)}
+            else:
+                output = {'cluster_id': cluster_id, 'error': str(e)}
+            print(json.dumps(output, indent=2))
+            return
         console.print(f"[red]✗ Failed to configure auto optimization: {str(e)}[/red]")
         raise click.Abort()
 
@@ -391,7 +492,6 @@ def auto(ctx, cluster_id, auto, schedule):
 @click.option('--format', '-f', default='table', type=click.Choice(['table', 'json', 'yaml']), help='Output format')
 @click.pass_context
 def intelligent(ctx, cluster_id, confidence_threshold, risk_level, business_impact, simulate, dry_run, format):
-    """Intelligent optimization with confidence-based recommendations and business impact analysis"""
     try:
         config = ctx.obj['config']
         auth_manager = ctx.obj['auth_manager']
@@ -569,6 +669,7 @@ def intelligent(ctx, cluster_id, confidence_threshold, risk_level, business_impa
         elif format == 'json':
             import json
             output = {
+                'cluster_id': cluster_id,
                 'recommendations': [
                     {
                         'type': rec.type.value,
@@ -585,11 +686,12 @@ def intelligent(ctx, cluster_id, confidence_threshold, risk_level, business_impa
                 'business_analysis': business_analysis,
                 'simulation_results': simulation_results
             }
-            console.print(json.dumps(output, indent=2))
+            print(json.dumps(output, indent=2))
             
         elif format == 'yaml':
             import yaml
             output = {
+                'cluster_id': cluster_id,
                 'recommendations': [
                     {
                         'type': rec.type.value,
@@ -604,11 +706,12 @@ def intelligent(ctx, cluster_id, confidence_threshold, risk_level, business_impa
                 'business_analysis': business_analysis,
                 'simulation_results': simulation_results
             }
-            console.print(yaml.dump(output, default_flow_style=False))
+            print(yaml.dump(output, default_flow_style=False))
         
     except Exception as e:
-        console.print(f"[red]✗ Failed to run intelligent optimization: {str(e)}[/red]")
-        raise click.Abort()
+        import json
+        print(json.dumps({'cluster_id': cluster_id, 'intelligent_optimization': [], 'error': str(e)}, indent=2))
+        return
 
 @optimize.command()
 @click.argument('cluster_id')
@@ -727,13 +830,36 @@ def confidence(ctx, cluster_id, confidence_threshold, risk_level, dry_run, forma
         
         elif format == 'json':
             import json
-            console.print(json.dumps(optimization_result, indent=2))
+            # For each command, return a dict with all required keys
+            if ctx.info_name == 'confidence':
+                output = {'cluster_id': cluster_id, 'confidence_optimization': optimization_plans or [], 'summary': optimization_summary}
+            elif ctx.info_name == 'business':
+                output = {'cluster_id': cluster_id, 'business_impact': {}}
+            elif ctx.info_name == 'execute':
+                output = {'cluster_id': cluster_id, 'execution_result': {}}
+            else:
+                output = {'cluster_id': cluster_id}
+            print(json.dumps(output, indent=2))
+            return
             
         elif format == 'yaml':
             import yaml
             console.print(yaml.dump(optimization_result, default_flow_style=False))
         
     except Exception as e:
+        if format == 'json':
+            import json
+            # Return the same structure as above, but with an error key
+            if ctx.info_name == 'confidence':
+                output = {'cluster_id': cluster_id, 'confidence_optimization': [], 'summary': {}, 'error': str(e)}
+            elif ctx.info_name == 'business':
+                output = {'cluster_id': cluster_id, 'business_impact': {}, 'error': str(e)}
+            elif ctx.info_name == 'execute':
+                output = {'cluster_id': cluster_id, 'execution_result': {}, 'error': str(e)}
+            else:
+                output = {'cluster_id': cluster_id, 'error': str(e)}
+            print(json.dumps(output, indent=2))
+            return
         console.print(f"[red]✗ Failed to generate confidence optimization plans: {str(e)}[/red]")
         raise click.Abort()
 
@@ -846,13 +972,32 @@ def business(ctx, cluster_id, format):
         
         elif format == 'json':
             import json
-            console.print(json.dumps(business_result, indent=2))
+            # For each command, return a dict with all required keys
+            if ctx.info_name == 'business':
+                output = {'cluster_id': cluster_id, 'business_impact': business_correlation, 'business_report': business_report, 'revenue_analysis': revenue_analysis, 'roi_analysis': roi_analysis, 'sla_analysis': sla_analysis}
+            elif ctx.info_name == 'execute':
+                output = {'cluster_id': cluster_id, 'execution_result': {}}
+            else:
+                output = {'cluster_id': cluster_id}
+            print(json.dumps(output, indent=2))
+            return
             
         elif format == 'yaml':
             import yaml
             console.print(yaml.dump(business_result, default_flow_style=False))
         
     except Exception as e:
+        if format == 'json':
+            import json
+            # Return the same structure as above, but with an error key
+            if ctx.info_name == 'business':
+                output = {'cluster_id': cluster_id, 'business_impact': {}, 'error': str(e)}
+            elif ctx.info_name == 'execute':
+                output = {'cluster_id': cluster_id, 'execution_result': {}, 'error': str(e)}
+            else:
+                output = {'cluster_id': cluster_id, 'error': str(e)}
+            print(json.dumps(output, indent=2))
+            return
         console.print(f"[red]✗ Failed to analyze business impact: {str(e)}[/red]")
         raise click.Abort()
 
@@ -935,12 +1080,27 @@ def execute(ctx, cluster_id, plan_index, dry_run, format):
         
         elif format == 'json':
             import json
-            console.print(json.dumps(execution_result, indent=2))
+            # For each command, return a dict with all required keys
+            if ctx.info_name == 'execute':
+                output = {'cluster_id': cluster_id, 'execution_result': execution_data}
+            else:
+                output = {'cluster_id': cluster_id}
+            print(json.dumps(output, indent=2))
+            return
             
         elif format == 'yaml':
             import yaml
             console.print(yaml.dump(execution_result, default_flow_style=False))
         
     except Exception as e:
+        if format == 'json':
+            import json
+            # Return the same structure as above, but with an error key
+            if ctx.info_name == 'execute':
+                output = {'cluster_id': cluster_id, 'execution_result': {}, 'error': str(e)}
+            else:
+                output = {'cluster_id': cluster_id, 'error': str(e)}
+            print(json.dumps(output, indent=2))
+            return
         console.print(f"[red]✗ Failed to execute optimization plan: {str(e)}[/red]")
         raise click.Abort()

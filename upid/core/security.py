@@ -600,36 +600,108 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(H
 async def authenticate_user(username: str, password: str, mfa_code: Optional[str] = None) -> Optional[Dict[str, Any]]:
     """Authenticate user with username and password."""
     try:
-        # In production, this would validate against a user database
-        # For now, use a simple authentication scheme
-        if username == "admin" and password == "password":
-            user_data = {
-                "user_id": "admin-001",
-                "username": "admin",
-                "email": "admin@upid.io",
-                "organization": "upid",
-                "permissions": ["read", "write", "admin", "analyze", "optimize", "report", "storage", "user_management", "system_config"],
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "last_login": datetime.now(timezone.utc).isoformat(),
-                "mfa_enabled": True,
-                "mfa_verified": mfa_code == "123456" if mfa_code else False
-            }
-        elif username == "user" and password == "password":
-            user_data = {
-                "user_id": "user-001",
-                "username": "user",
-                "email": "user@upid.io",
-                "organization": "upid",
-                "permissions": ["read", "analyze"],
-                "created_at": datetime.now(timezone.utc).isoformat(),
-                "last_login": datetime.now(timezone.utc).isoformat(),
-                "mfa_enabled": False,
-                "mfa_verified": True
-            }
-        else:
+        # Real authentication implementation
+        from .storage_integration import StorageIntegration
+        
+        storage = StorageIntegration()
+        # Get user from database
+        user_data = await storage.get_user_by_username(username)
+        if not user_data:
+            logger.warning(f"Authentication failed: User '{username}' not found")
             return None
         
-        return user_data
+        # Verify password
+        if not PasswordManager.verify_password(password, user_data.get('password_hash', '')):
+            logger.warning(f"Authentication failed: Invalid password for user '{username}'")
+            return None
+        
+        # Check if account is active
+        if not user_data.get('is_active', True):
+            logger.warning(f"Authentication failed: Account disabled for user '{username}'")
+            return None
+        
+        # Handle MFA if enabled
+        if user_data.get('mfa_enabled', False):
+            if not mfa_code:
+                logger.warning(f"Authentication failed: MFA required for user '{username}'")
+                return {
+                    "user_id": user_data.get('user_id'),
+                    "username": username,
+                    "mfa_required": True,
+                    "mfa_enabled": True,
+                    "mfa_verified": False
+                }
+            
+            # Verify MFA code
+            if not await _verify_mfa_code(user_data.get('user_id'), mfa_code):
+                logger.warning(f"Authentication failed: Invalid MFA code for user '{username}'")
+                return None
+        
+        # Update last login
+        await storage.update_user_last_login(user_data.get('user_id'))
+        
+        # Log successful authentication
+        await _log_auth_event(user_data.get('user_id'), 'login', True, {
+            'username': username,
+            'mfa_used': bool(mfa_code)
+        })
+        
+        return {
+            "user_id": user_data.get('user_id'),
+            "username": username,
+            "email": user_data.get('email'),
+            "organization": user_data.get('organization', 'default'),
+            "permissions": user_data.get('permissions', ['read']),
+            "created_at": user_data.get('created_at'),
+            "last_login": datetime.now(timezone.utc).isoformat(),
+            "mfa_enabled": user_data.get('mfa_enabled', False),
+            "mfa_verified": bool(mfa_code) if user_data.get('mfa_enabled', False) else True,
+            "security_level": user_data.get('security_level', 'medium')
+        }
+        
     except Exception as e:
         logger.error(f"Authentication error: {e}")
-        return None 
+        return None
+
+async def _verify_mfa_code(user_id: str, mfa_code: str) -> bool:
+    """Verify MFA code using TOTP or other MFA methods."""
+    try:
+        from .storage_integration import StorageIntegration
+        
+        storage = StorageIntegration()
+        # Get user's MFA secret
+        mfa_secret = await storage.get_user_mfa_secret(user_id)
+        if not mfa_secret:
+            return False
+        
+        # Verify TOTP code
+        import pyotp
+        totp = pyotp.TOTP(mfa_secret)
+        return totp.verify(mfa_code)
+        
+    except Exception as e:
+        logger.error(f"MFA verification error: {e}")
+        return False
+
+async def _log_auth_event(user_id: str, action: str, success: bool, details: Dict[str, Any]):
+    """Log authentication events for audit."""
+    try:
+        from .storage_integration import StorageIntegration
+        
+        storage = StorageIntegration()
+        await storage.log_audit_event({
+            'event_id': f"auth_{datetime.now().timestamp()}",
+            'user_id': user_id,
+            'action': action,
+            'resource_type': 'authentication',
+            'resource_id': 'auth_system',
+            'timestamp': datetime.now(timezone.utc).isoformat(),
+            'ip_address': details.get('ip_address', 'unknown'),
+                'user_agent': details.get('user_agent', 'unknown'),
+                'success': success,
+                'details': details,
+                'security_level': 'high'
+            })
+            
+    except Exception as e:
+        logger.error(f"Failed to log auth event: {e}") 

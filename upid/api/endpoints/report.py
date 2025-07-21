@@ -15,7 +15,7 @@ from datetime import datetime, timedelta
 
 from ..auth import get_current_user, require_permission
 from ...core.dashboard import ExecutiveDashboard
-from ...core.advanced_analytics import AdvancedIntelligenceEngine as AdvancedAnalytics
+from ...core.advanced_analytics import AdvancedAnalyticsEngine as AdvancedAnalytics
 from ...core.storage_integration import StorageIntegration
 from ...core.models import User
 from ...core.api_models import ReportGenerationRequest
@@ -274,7 +274,7 @@ async def export_report(
             )
         else:
             raise HTTPException(status_code=400, detail="Unsupported format")
-            
+        
     except Exception as e:
         logger.error(f"Export report error: {e}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -333,9 +333,9 @@ async def get_trends(
         return {
             "status": "success",
             "trends": {
-                "metric": metric,
+            "metric": metric,
                 "cluster_name": cluster_name or "default-cluster",
-                "time_range": time_range,
+            "time_range": time_range,
                 "data_points": [
                     {"timestamp": "2024-07-01", "value": 65.2},
                     {"timestamp": "2024-07-02", "value": 67.1},
@@ -371,22 +371,22 @@ async def get_alerts(
             "alerts": [
                 {
                     "id": "alert_001",
-                    "severity": "warning",
+                "severity": "warning",
                     "title": "High CPU utilization detected",
                     "description": "CPU utilization above 80% for 15 minutes",
                     "cluster_name": cluster_name or "default-cluster",
-                    "timestamp": datetime.now().isoformat(),
-                    "status": "active"
-                },
-                {
+                "timestamp": datetime.now().isoformat(),
+                "status": "active"
+            },
+            {
                     "id": "alert_002",
-                    "severity": "info",
+                "severity": "info",
                     "title": "Optimization opportunity available",
                     "description": "5 pods eligible for zero-pod scaling",
                     "cluster_name": cluster_name or "default-cluster",
-                    "timestamp": datetime.now().isoformat(),
-                    "status": "active"
-                }
+                "timestamp": datetime.now().isoformat(),
+                "status": "active"
+            }
             ],
             "timestamp": datetime.now().isoformat()
         }

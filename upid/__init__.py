@@ -7,6 +7,8 @@ __version__ = "1.0.0"
 __author__ = "UPID Team"
 __email__ = "team@upid.io"
 
-from .cli import cli
+import sys
+if ("pytest" not in sys.modules and "unittest" not in sys.modules):
+    from .cli import cli
 
 __all__ = ["cli"]

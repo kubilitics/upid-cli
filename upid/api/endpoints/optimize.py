@@ -234,7 +234,7 @@ async def analyze_performance(
             "performance_analysis": {
                 "cluster_name": cluster_name or "default-cluster",
                 "namespace": namespace or "default",
-                "time_range": time_range,
+            "time_range": time_range,
                 "current_performance": {
                     "avg_cpu_utilization": 67.5,
                     "avg_memory_utilization": 72.1,
@@ -249,7 +249,7 @@ async def analyze_performance(
                         "confidence": 89.5
                     }
                 ],
-                "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat()
             }
         }
     except Exception as e:

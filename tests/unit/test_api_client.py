@@ -483,7 +483,7 @@ class TestUPIDAPIClient:
         response = client.get_deployment_status('deploy-123')
         
         assert response == mock_response
-        mock_get.assert_called_once_with('/deployments/deploy-123')
+        mock_get.assert_called_once_with('/clusters/deploy-123/deployments/status')
 
     @pytest.mark.unit
     @patch.object(UPIDAPIClient, '_get')

@@ -11,8 +11,7 @@ from rich.panel import Panel
 from rich.prompt import Prompt, Confirm
 from rich.progress import Progress, SpinnerColumn, TextColumn
 
-from ..auth import UniversalAuthenticator
-from ..auth.universal_auth import EnvironmentInfo, AuthResult
+from ..auth.universal_auth import UniversalAuthManager
 
 console = Console()
 
@@ -28,7 +27,7 @@ def auth(ctx):
 async def status(ctx, namespace):
     """Show authentication status and permissions"""
     try:
-        authenticator = UniversalAuthenticator()
+        authenticator = UniversalAuthManager()
         
         with Progress(
             SpinnerColumn(),
@@ -116,7 +115,7 @@ async def status(ctx, namespace):
 async def login(ctx, cluster_type, context, namespace):
     """Authenticate with Kubernetes cluster"""
     try:
-        authenticator = UniversalAuthenticator()
+        authenticator = UniversalAuthManager()
         
         with Progress(
             SpinnerColumn(),
@@ -170,7 +169,7 @@ async def login(ctx, cluster_type, context, namespace):
 async def permissions(ctx, namespace):
     """Check detailed permissions for current user"""
     try:
-        authenticator = UniversalAuthenticator()
+        authenticator = UniversalAuthManager()
         
         with Progress(
             SpinnerColumn(),
@@ -230,7 +229,7 @@ async def permissions(ctx, namespace):
 async def can_i(ctx, resource, action, namespace):
     """Check if user can perform action on resource"""
     try:
-        authenticator = UniversalAuthenticator()
+        authenticator = UniversalAuthManager()
         
         with Progress(
             SpinnerColumn(),

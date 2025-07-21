@@ -1,6 +1,6 @@
 """
-Business Intelligence Engine
-Correlates Kubernetes metrics with business KPIs and provides actionable insights.
+Business Intelligence Engine for UPID CLI
+Provides executive-level insights and business impact analysis
 """
 
 import asyncio
@@ -14,372 +14,710 @@ logger = logging.getLogger(__name__)
 
 
 class BusinessMetricType(Enum):
-    """Types of business metrics that can be correlated with K8s data."""
-    REVENUE = "revenue"
-    USER_ACTIVITY = "user_activity"
-    TRANSACTION_VOLUME = "transaction_volume"
-    ERROR_RATE = "error_rate"
-    RESPONSE_TIME = "response_time"
-    COST_PER_TRANSACTION = "cost_per_transaction"
+    """Types of business metrics"""
+    COST_SAVINGS = "cost_savings"
+    PERFORMANCE_IMPROVEMENT = "performance_improvement"
+    RESOURCE_UTILIZATION = "resource_utilization"
+    SLA_COMPLIANCE = "sla_compliance"
+    BUSINESS_IMPACT = "business_impact"
 
 
 @dataclass
-class BusinessMetric:
-    """Represents a business metric with its value and metadata."""
-    name: str
-    value: float
-    timestamp: datetime
+class BusinessKPI:
+    """Business KPI data structure"""
     metric_type: BusinessMetricType
+    current_value: float
+    target_value: float
     unit: str
-    description: str
+    trend: str  # "improving", "declining", "stable"
+    confidence: float  # 0.0 to 1.0
+    impact_score: float  # 0.0 to 1.0
 
 
 @dataclass
-class CorrelationInsight:
-    """Represents a correlation insight between K8s and business metrics."""
-    k8s_metric: str
-    business_metric: str
-    correlation_strength: float  # -1 to 1
-    confidence: float  # 0 to 1
-    insight_type: str
-    description: str
-    actionable: bool
+class BusinessImpact:
+    """Business impact analysis result"""
+    roi_percentage: float
+    cost_savings: float
+    performance_gain: float
+    risk_assessment: float
     recommendations: List[str]
+    executive_summary: str
 
 
 class BusinessIntelligenceEngine:
     """
-    Business Intelligence Engine that correlates Kubernetes metrics with business KPIs.
+    Business Intelligence Engine
+    Provides executive-level insights and business impact analysis
     """
     
     def __init__(self):
-        self.correlation_threshold = 0.7
-        self.confidence_threshold = 0.8
-        self.insights_history: List[CorrelationInsight] = []
+        self.cost_calculator = CostCalculator()
+        self.performance_analyzer = PerformanceAnalyzer()
+        self.roi_calculator = ROICalculator()
+        self.risk_assessor = BusinessRiskAssessor()
         
-    async def analyze_business_correlation(
+    async def analyze_business_impact(
         self, 
-        k8s_metrics: Dict[str, Any],
-        business_metrics: List[BusinessMetric]
-    ) -> List[CorrelationInsight]:
+        cluster_id: str, 
+        time_range: str = "30d",
+        include_forecast: bool = True
+    ) -> BusinessImpact:
         """
-        Analyze correlation between Kubernetes metrics and business metrics.
+        Analyze business impact of cluster optimization
         
         Args:
-            k8s_metrics: Dictionary of Kubernetes metrics data
-            business_metrics: List of business metrics to correlate
+            cluster_id: Target cluster identifier
+            time_range: Analysis time period
+            include_forecast: Include future predictions
             
         Returns:
-            List of correlation insights
+            BusinessImpact: Comprehensive business impact analysis
         """
-        logger.info("Starting business correlation analysis")
-        
-        insights = []
-        
-        # Analyze CPU usage vs business metrics
-        if 'cpu_usage' in k8s_metrics:
-            cpu_insights = await self._analyze_cpu_correlation(
-                k8s_metrics['cpu_usage'], business_metrics
+        try:
+            logger.info(f"Analyzing business impact for cluster {cluster_id}")
+            
+            # Collect current metrics
+            current_metrics = await self._collect_current_metrics(cluster_id, time_range)
+            
+            # Calculate cost analysis
+            cost_analysis = await self.cost_calculator.analyze(
+                cluster_id, current_metrics, time_range
             )
-            insights.extend(cpu_insights)
-        
-        # Analyze memory usage vs business metrics
-        if 'memory_usage' in k8s_metrics:
-            memory_insights = await self._analyze_memory_correlation(
-                k8s_metrics['memory_usage'], business_metrics
+            
+            # Analyze performance impact
+            performance_analysis = await self.performance_analyzer.analyze(
+                cluster_id, current_metrics, time_range
             )
-            insights.extend(memory_insights)
-        
-        # Analyze pod count vs business metrics
-        if 'pod_count' in k8s_metrics:
-            pod_insights = await self._analyze_pod_correlation(
-                k8s_metrics['pod_count'], business_metrics
+            
+            # Calculate ROI
+            roi_analysis = await self.roi_calculator.calculate(
+                cluster_id, cost_analysis, performance_analysis, time_range
             )
-            insights.extend(pod_insights)
-        
-        # Analyze error rates vs business metrics
-        if 'error_rate' in k8s_metrics:
-            error_insights = await self._analyze_error_correlation(
-                k8s_metrics['error_rate'], business_metrics
+            
+            # Assess business risks
+            risk_assessment = await self.risk_assessor.assess(
+                cluster_id, current_metrics, cost_analysis
             )
-            insights.extend(error_insights)
-        
-        # Store insights for historical analysis
-        self.insights_history.extend(insights)
-        
-        logger.info(f"Generated {len(insights)} business correlation insights")
-        return insights
+            
+            # Generate recommendations
+            recommendations = await self._generate_recommendations(
+                cost_analysis, performance_analysis, risk_assessment
+            )
+            
+            # Create executive summary
+            executive_summary = await self._create_executive_summary(
+                cost_analysis, performance_analysis, roi_analysis, risk_assessment
+            )
+            
+            return BusinessImpact(
+                roi_percentage=roi_analysis.roi_percentage,
+                cost_savings=cost_analysis.potential_savings,
+                performance_gain=performance_analysis.performance_gain,
+                risk_assessment=risk_assessment.overall_risk,
+                recommendations=recommendations,
+                executive_summary=executive_summary
+            )
+            
+        except Exception as e:
+            logger.error(f"Error analyzing business impact: {e}")
+            raise
     
-    async def _analyze_cpu_correlation(
+    async def get_executive_dashboard(
         self, 
-        cpu_data: Dict[str, Any], 
-        business_metrics: List[BusinessMetric]
-    ) -> List[CorrelationInsight]:
-        """Analyze correlation between CPU usage and business metrics."""
-        insights = []
-        
-        # Find revenue metrics
-        revenue_metrics = [m for m in business_metrics if m.metric_type == BusinessMetricType.REVENUE]
-        
-        if revenue_metrics and 'average' in cpu_data:
-            cpu_avg = cpu_data['average']
-            
-            # Simulate correlation analysis
-            correlation = self._calculate_correlation(cpu_avg, [m.value for m in revenue_metrics])
-            
-            if abs(correlation) > self.correlation_threshold:
-                insight = CorrelationInsight(
-                    k8s_metric="CPU Usage",
-                    business_metric="Revenue",
-                    correlation_strength=correlation,
-                    confidence=0.85,
-                    insight_type="performance_revenue_correlation",
-                    description=f"CPU usage shows {abs(correlation):.2f} correlation with revenue",
-                    actionable=True,
-                    recommendations=[
-                        "Monitor CPU scaling patterns during high-revenue periods",
-                        "Consider auto-scaling based on revenue projections",
-                        "Optimize resource allocation for revenue-generating services"
-                    ]
-                )
-                insights.append(insight)
-        
-        return insights
-    
-    async def _analyze_memory_correlation(
-        self, 
-        memory_data: Dict[str, Any], 
-        business_metrics: List[BusinessMetric]
-    ) -> List[CorrelationInsight]:
-        """Analyze correlation between memory usage and business metrics."""
-        insights = []
-        
-        # Find user activity metrics
-        user_metrics = [m for m in business_metrics if m.metric_type == BusinessMetricType.USER_ACTIVITY]
-        
-        if user_metrics and 'average' in memory_data:
-            memory_avg = memory_data['average']
-            
-            # Simulate correlation analysis
-            correlation = self._calculate_correlation(memory_avg, [m.value for m in user_metrics])
-            
-            if abs(correlation) > self.correlation_threshold:
-                insight = CorrelationInsight(
-                    k8s_metric="Memory Usage",
-                    business_metric="User Activity",
-                    correlation_strength=correlation,
-                    confidence=0.82,
-                    insight_type="memory_user_correlation",
-                    description=f"Memory usage shows {abs(correlation):.2f} correlation with user activity",
-                    actionable=True,
-                    recommendations=[
-                        "Scale memory resources based on user activity patterns",
-                        "Implement memory optimization for high-traffic periods",
-                        "Monitor memory leaks during peak usage"
-                    ]
-                )
-                insights.append(insight)
-        
-        return insights
-    
-    async def _analyze_pod_correlation(
-        self, 
-        pod_data: Dict[str, Any], 
-        business_metrics: List[BusinessMetric]
-    ) -> List[CorrelationInsight]:
-        """Analyze correlation between pod count and business metrics."""
-        insights = []
-        
-        # Find transaction volume metrics
-        transaction_metrics = [m for m in business_metrics if m.metric_type == BusinessMetricType.TRANSACTION_VOLUME]
-        
-        if transaction_metrics and 'count' in pod_data:
-            pod_count = pod_data['count']
-            
-            # Simulate correlation analysis
-            correlation = self._calculate_correlation(pod_count, [m.value for m in transaction_metrics])
-            
-            if abs(correlation) > self.correlation_threshold:
-                insight = CorrelationInsight(
-                    k8s_metric="Pod Count",
-                    business_metric="Transaction Volume",
-                    correlation_strength=correlation,
-                    confidence=0.88,
-                    insight_type="scaling_transaction_correlation",
-                    description=f"Pod count shows {abs(correlation):.2f} correlation with transaction volume",
-                    actionable=True,
-                    recommendations=[
-                        "Implement horizontal pod autoscaling based on transaction volume",
-                        "Optimize pod scaling policies for transaction patterns",
-                        "Monitor pod efficiency during high-transaction periods"
-                    ]
-                )
-                insights.append(insight)
-        
-        return insights
-    
-    async def _analyze_error_correlation(
-        self, 
-        error_data: Dict[str, Any], 
-        business_metrics: List[BusinessMetric]
-    ) -> List[CorrelationInsight]:
-        """Analyze correlation between error rates and business metrics."""
-        insights = []
-        
-        # Find error rate metrics
-        error_metrics = [m for m in business_metrics if m.metric_type == BusinessMetricType.ERROR_RATE]
-        
-        if error_metrics and 'rate' in error_data:
-            k8s_error_rate = error_data['rate']
-            
-            # Simulate correlation analysis
-            correlation = self._calculate_correlation(k8s_error_rate, [m.value for m in error_metrics])
-            
-            if abs(correlation) > self.correlation_threshold:
-                insight = CorrelationInsight(
-                    k8s_metric="K8s Error Rate",
-                    business_metric="Business Error Rate",
-                    correlation_strength=correlation,
-                    confidence=0.90,
-                    insight_type="error_correlation",
-                    description=f"Kubernetes error rate shows {abs(correlation):.2f} correlation with business error rate",
-                    actionable=True,
-                    recommendations=[
-                        "Investigate infrastructure errors during high business error periods",
-                        "Implement error correlation alerts",
-                        "Optimize error handling and recovery procedures"
-                    ]
-                )
-                insights.append(insight)
-        
-        return insights
-    
-    def _calculate_correlation(self, value1: float, values2: List[float]) -> float:
-        """
-        Calculate correlation between a single value and a list of values.
-        This is a simplified correlation calculation for demonstration.
-        """
-        if not values2:
-            return 0.0
-        
-        # Simplified correlation calculation
-        avg_value2 = sum(values2) / len(values2)
-        
-        # Normalize the correlation to be between -1 and 1
-        if avg_value2 == 0:
-            return 0.0
-        
-        # Simple linear correlation
-        correlation = (value1 - avg_value2) / max(avg_value2, 1.0)
-        return max(-1.0, min(1.0, correlation))
-    
-    async def generate_business_recommendations(
-        self, 
-        insights: List[CorrelationInsight]
-    ) -> List[str]:
-        """
-        Generate actionable business recommendations based on insights.
-        
-        Args:
-            insights: List of correlation insights
-            
-        Returns:
-            List of actionable recommendations
-        """
-        recommendations = []
-        
-        for insight in insights:
-            if insight.actionable and insight.confidence > self.confidence_threshold:
-                recommendations.extend(insight.recommendations)
-        
-        # Add general recommendations based on patterns
-        if len(insights) > 3:
-            recommendations.append("Consider implementing comprehensive monitoring dashboard")
-            recommendations.append("Review resource allocation strategies")
-            recommendations.append("Implement automated scaling policies")
-        
-        return list(set(recommendations))  # Remove duplicates
-    
-    async def get_business_impact_score(
-        self, 
-        k8s_metrics: Dict[str, Any],
-        business_metrics: List[BusinessMetric]
-    ) -> float:
-        """
-        Calculate overall business impact score based on K8s metrics.
-        
-        Args:
-            k8s_metrics: Kubernetes metrics data
-            business_metrics: Business metrics data
-            
-        Returns:
-            Business impact score (0-100)
-        """
-        score = 50.0  # Base score
-        
-        # Adjust based on resource utilization
-        if 'cpu_usage' in k8s_metrics and 'average' in k8s_metrics['cpu_usage']:
-            cpu_usage = k8s_metrics['cpu_usage']['average']
-            if cpu_usage > 80:
-                score -= 10  # High CPU usage is concerning
-            elif cpu_usage < 20:
-                score -= 5   # Low CPU usage might indicate over-provisioning
-        
-        if 'memory_usage' in k8s_metrics and 'average' in k8s_metrics['memory_usage']:
-            memory_usage = k8s_metrics['memory_usage']['average']
-            if memory_usage > 85:
-                score -= 15  # High memory usage is critical
-            elif memory_usage < 30:
-                score -= 3   # Low memory usage might indicate waste
-        
-        # Adjust based on business metrics
-        revenue_metrics = [m for m in business_metrics if m.metric_type == BusinessMetricType.REVENUE]
-        if revenue_metrics:
-            avg_revenue = sum(m.value for m in revenue_metrics) / len(revenue_metrics)
-            if avg_revenue > 1000:  # Assuming high revenue is good
-                score += 10
-        
-        # Normalize score to 0-100 range
-        return max(0.0, min(100.0, score))
-    
-    async def export_business_report(
-        self, 
-        insights: List[CorrelationInsight],
-        impact_score: float
+        cluster_id: str, 
+        time_range: str = "30d"
     ) -> Dict[str, Any]:
         """
-        Export comprehensive business intelligence report.
+        Generate executive dashboard with key business metrics
         
         Args:
-            insights: List of correlation insights
-            impact_score: Business impact score
+            cluster_id: Target cluster identifier
+            time_range: Analysis time period
             
         Returns:
-            Dictionary containing the business report
+            Dict: Executive dashboard data
         """
-        return {
-            "timestamp": datetime.now().isoformat(),
-            "business_impact_score": impact_score,
-            "total_insights": len(insights),
-            "high_confidence_insights": len([i for i in insights if i.confidence > 0.8]),
-            "actionable_insights": len([i for i in insights if i.actionable]),
-            "insights": [
-                {
-                    "k8s_metric": insight.k8s_metric,
-                    "business_metric": insight.business_metric,
-                    "correlation_strength": insight.correlation_strength,
-                    "confidence": insight.confidence,
-                    "description": insight.description,
-                    "recommendations": insight.recommendations
-                }
-                for insight in insights
-            ],
-            "summary": {
-                "status": "healthy" if impact_score > 70 else "needs_attention",
-                "key_findings": [
-                    f"Found {len(insights)} business correlations",
-                    f"Business impact score: {impact_score:.1f}/100",
-                    f"{len([i for i in insights if i.actionable])} actionable insights"
-                ]
+        try:
+            logger.info(f"Generating executive dashboard for cluster {cluster_id}")
+            
+            # Get business impact analysis
+            business_impact = await self.analyze_business_impact(cluster_id, time_range)
+            
+            # Get KPIs
+            kpis = await self._calculate_kpis(cluster_id, time_range)
+            
+            # Get trends
+            trends = await self._analyze_trends(cluster_id, time_range)
+            
+            # Get alerts
+            alerts = await self._get_business_alerts(cluster_id, business_impact)
+            
+            return {
+                "cluster_id": cluster_id,
+                "time_range": time_range,
+                "business_impact": business_impact,
+                "kpis": kpis,
+                "trends": trends,
+                "alerts": alerts,
+                "last_updated": datetime.now().isoformat()
             }
-        } 
+            
+        except Exception as e:
+            logger.error(f"Error generating executive dashboard: {e}")
+            raise
+    
+    async def _collect_current_metrics(
+        self, 
+        cluster_id: str, 
+        time_range: str
+    ) -> Dict[str, Any]:
+        """Collect current cluster metrics for business analysis"""
+        # This would integrate with the metrics collector
+        # For now, return mock data
+        return {
+            "cpu_utilization": 0.65,
+            "memory_utilization": 0.72,
+            "network_io": 1024.5,
+            "cost_per_hour": 2.45,
+            "pod_count": 150,
+            "node_count": 8
+        }
+    
+    async def _generate_recommendations(
+        self,
+        cost_analysis: Any,
+        performance_analysis: Any,
+        risk_assessment: Any
+    ) -> List[str]:
+        """Generate business recommendations"""
+        recommendations = []
+        
+        if cost_analysis.potential_savings > 1000:
+            recommendations.append(
+                f"Implement resource optimization to save ${cost_analysis.potential_savings:.2f}/month"
+            )
+        
+        if performance_analysis.performance_gain > 0.1:
+            recommendations.append(
+                f"Performance can be improved by {performance_analysis.performance_gain:.1%}"
+            )
+        
+        if risk_assessment.overall_risk < 0.3:
+            recommendations.append("Low risk environment - safe to implement optimizations")
+        
+        return recommendations
+    
+    async def _create_executive_summary(
+        self,
+        cost_analysis: Any,
+        performance_analysis: Any,
+        roi_analysis: Any,
+        risk_assessment: Any
+    ) -> str:
+        """Create executive summary"""
+        summary = f"""
+        Cluster Optimization Analysis Summary:
+        
+        💰 Cost Impact: ${cost_analysis.potential_savings:.2f} potential monthly savings
+        📈 Performance: {performance_analysis.performance_gain:.1%} improvement opportunity
+        🎯 ROI: {roi_analysis.roi_percentage:.1%} return on optimization investment
+        ⚠️ Risk Level: {'Low' if risk_assessment.overall_risk < 0.3 else 'Medium' if risk_assessment.overall_risk < 0.6 else 'High'}
+        
+        Recommendation: {'Proceed with optimization' if risk_assessment.overall_risk < 0.5 else 'Review and plan carefully'}
+        """
+        return summary.strip()
+    
+    async def _calculate_kpis(
+        self, 
+        cluster_id: str, 
+        time_range: str
+    ) -> List[BusinessKPI]:
+        """Calculate key performance indicators"""
+        try:
+            from .metrics_collector import KubernetesMetricsCollector
+            from .storage_integration import StorageIntegration
+            
+            # Get real metrics data
+            metrics_collector = KubernetesMetricsCollector()
+            metrics = await metrics_collector.collect_metrics(cluster_id)
+            
+            # Calculate real KPIs based on actual data
+            kpis = []
+            
+            # Cost Savings KPI
+            current_cost = self._calculate_current_cost(metrics)
+            optimized_cost = self._calculate_optimized_cost(metrics)
+            cost_savings = (current_cost - optimized_cost) / current_cost if current_cost > 0 else 0
+            
+            kpis.append(BusinessKPI(
+                metric_type=BusinessMetricType.COST_SAVINGS,
+                current_value=cost_savings,
+                target_value=0.25,  # 25% target
+                unit="%",
+                trend="improving" if cost_savings > 0.15 else "stable" if cost_savings > 0.05 else "declining",
+                confidence=self._calculate_confidence(metrics),
+                impact_score=min(1.0, cost_savings * 4)  # Scale to 0-1
+            ))
+            
+            # Performance Improvement KPI
+            current_performance = self._calculate_performance_score(metrics)
+            target_performance = 0.85
+            
+            kpis.append(BusinessKPI(
+                metric_type=BusinessMetricType.PERFORMANCE_IMPROVEMENT,
+                current_value=current_performance,
+                target_value=target_performance,
+                unit="%",
+                trend="improving" if current_performance > 0.8 else "stable" if current_performance > 0.7 else "declining",
+                confidence=self._calculate_confidence(metrics),
+                impact_score=current_performance
+            ))
+            
+            # Resource Utilization KPI
+            resource_utilization = self._calculate_resource_utilization(metrics)
+            target_utilization = 0.75
+            
+            kpis.append(BusinessKPI(
+                metric_type=BusinessMetricType.RESOURCE_UTILIZATION,
+                current_value=resource_utilization,
+                target_value=target_utilization,
+                unit="%",
+                trend="improving" if resource_utilization > 0.7 else "stable" if resource_utilization > 0.6 else "declining",
+                confidence=self._calculate_confidence(metrics),
+                impact_score=resource_utilization
+            ))
+            
+            return kpis
+            
+        except Exception as e:
+            logger.error(f"Error calculating KPIs: {e}")
+            # Return basic KPIs on error
+            return [
+                BusinessKPI(
+                    metric_type=BusinessMetricType.COST_SAVINGS,
+                    current_value=0.0,
+                    target_value=0.25,
+                    unit="%",
+                    trend="stable",
+                    confidence=0.5,
+                    impact_score=0.0
+                )
+            ]
+    
+    def _calculate_current_cost(self, metrics: Dict[str, Any]) -> float:
+        """Calculate current cost based on metrics"""
+        try:
+            # Extract cost-related metrics
+            cpu_usage = metrics.get('cpu_usage', 0.5)
+            memory_usage = metrics.get('memory_usage', 0.5)
+            pod_count = metrics.get('pod_count', 10)
+            node_count = metrics.get('node_count', 3)
+            
+            # Simple cost calculation (in production, this would use real pricing)
+            cpu_cost = cpu_usage * pod_count * 0.1  # $0.1 per CPU hour
+            memory_cost = memory_usage * pod_count * 0.05  # $0.05 per GB hour
+            node_cost = node_count * 0.5  # $0.5 per node hour
+            
+            return cpu_cost + memory_cost + node_cost
+            
+        except Exception as e:
+            logger.error(f"Error calculating current cost: {e}")
+            return 0.0
+    
+    def _calculate_optimized_cost(self, metrics: Dict[str, Any]) -> float:
+        """Calculate optimized cost based on metrics"""
+        try:
+            # Apply optimization factors
+            cpu_usage = metrics.get('cpu_usage', 0.5) * 0.8  # 20% optimization
+            memory_usage = metrics.get('memory_usage', 0.5) * 0.85  # 15% optimization
+            pod_count = max(1, int(metrics.get('pod_count', 10) * 0.9))  # 10% reduction
+            node_count = max(1, int(metrics.get('node_count', 3) * 0.9))  # 10% reduction
+            
+            # Calculate optimized cost
+            cpu_cost = cpu_usage * pod_count * 0.1
+            memory_cost = memory_usage * pod_count * 0.05
+            node_cost = node_count * 0.5
+            
+            return cpu_cost + memory_cost + node_cost
+            
+        except Exception as e:
+            logger.error(f"Error calculating optimized cost: {e}")
+            return 0.0
+    
+    def _calculate_performance_score(self, metrics: Dict[str, Any]) -> float:
+        """Calculate performance score based on metrics"""
+        try:
+            # Extract performance metrics
+            response_time = metrics.get('response_time', 100)
+            error_rate = metrics.get('error_rate', 0.02)
+            availability = metrics.get('availability', 0.99)
+            
+            # Calculate performance score (0-1)
+            response_score = max(0, 1 - (response_time - 50) / 200)  # Normalize response time
+            error_score = max(0, 1 - error_rate * 10)  # Normalize error rate
+            availability_score = availability
+            
+            # Weighted average
+            performance_score = (response_score * 0.4 + error_score * 0.3 + availability_score * 0.3)
+            
+            return min(1.0, max(0.0, performance_score))
+            
+        except Exception as e:
+            logger.error(f"Error calculating performance score: {e}")
+            return 0.5
+    
+    def _calculate_resource_utilization(self, metrics: Dict[str, Any]) -> float:
+        """Calculate resource utilization score"""
+        try:
+            cpu_usage = metrics.get('cpu_usage', 0.5)
+            memory_usage = metrics.get('memory_usage', 0.5)
+            
+            # Average utilization
+            utilization = (cpu_usage + memory_usage) / 2
+            
+            return min(1.0, max(0.0, utilization))
+            
+        except Exception as e:
+            logger.error(f"Error calculating resource utilization: {e}")
+            return 0.5
+    
+    def _calculate_confidence(self, metrics: Dict[str, Any]) -> float:
+        """Calculate confidence level based on data quality"""
+        try:
+            # Check data completeness
+            required_fields = ['cpu_usage', 'memory_usage', 'pod_count']
+            available_fields = sum(1 for field in required_fields if field in metrics and metrics[field] is not None)
+            
+            completeness = available_fields / len(required_fields)
+            
+            # Check data freshness (assuming metrics have timestamps)
+            freshness = 1.0  # Placeholder for real freshness calculation
+            
+            # Overall confidence
+            confidence = (completeness + freshness) / 2
+            
+            return min(1.0, max(0.0, confidence))
+            
+        except Exception as e:
+            logger.error(f"Error calculating confidence: {e}")
+            return 0.5
+    
+    async def _analyze_trends(
+        self, 
+        cluster_id: str, 
+        time_range: str
+    ) -> Dict[str, Any]:
+        """Analyze business trends"""
+        try:
+            from .metrics_collector import KubernetesMetricsCollector
+            
+            # Get historical data
+            metrics_collector = KubernetesMetricsCollector()
+            historical_data = await metrics_collector.get_historical_data(cluster_id)
+            
+            # Analyze trends
+            cost_trend = self._analyze_cost_trend(historical_data)
+            performance_trend = self._analyze_performance_trend(historical_data)
+            utilization_trend = self._analyze_utilization_trend(historical_data)
+            
+            # Generate forecasts
+            forecast = self._generate_forecast(historical_data, time_range)
+            
+            return {
+                "cost_trend": cost_trend,
+                "performance_trend": performance_trend,
+                "utilization_trend": utilization_trend,
+                "forecast": forecast
+            }
+            
+        except Exception as e:
+            logger.error(f"Error analyzing trends: {e}")
+            return {
+                "cost_trend": "stable",
+                "performance_trend": "stable",
+                "utilization_trend": "stable",
+                "forecast": {
+                    "next_month_cost": 0.0,
+                    "next_month_savings": 0.0,
+                    "performance_prediction": 0.5
+                }
+            }
+    
+    def _analyze_cost_trend(self, historical_data: Dict[str, Any]) -> str:
+        """Analyze cost trend from historical data"""
+        try:
+            costs = historical_data.get('cost', [])
+            if len(costs) < 2:
+                return "stable"
+            
+            # Calculate trend
+            recent_avg = sum(costs[-3:]) / min(3, len(costs))
+            older_avg = sum(costs[:-3]) / max(1, len(costs) - 3)
+            
+            if recent_avg < older_avg * 0.95:
+                return "declining"
+            elif recent_avg > older_avg * 1.05:
+                return "increasing"
+            else:
+                return "stable"
+                
+        except Exception as e:
+            logger.error(f"Error analyzing cost trend: {e}")
+            return "stable"
+    
+    def _analyze_performance_trend(self, historical_data: Dict[str, Any]) -> str:
+        """Analyze performance trend from historical data"""
+        try:
+            # Use error rates as performance indicator
+            errors = historical_data.get('errors', [])
+            if len(errors) < 2:
+                return "stable"
+            
+            recent_avg = sum(errors[-3:]) / min(3, len(errors))
+            older_avg = sum(errors[:-3]) / max(1, len(errors) - 3)
+            
+            if recent_avg < older_avg * 0.9:
+                return "improving"
+            elif recent_avg > older_avg * 1.1:
+                return "declining"
+            else:
+                return "stable"
+                
+        except Exception as e:
+            logger.error(f"Error analyzing performance trend: {e}")
+            return "stable"
+    
+    def _analyze_utilization_trend(self, historical_data: Dict[str, Any]) -> str:
+        """Analyze utilization trend from historical data"""
+        try:
+            cpu_data = historical_data.get('cpu', [])
+            memory_data = historical_data.get('memory', [])
+            
+            if len(cpu_data) < 2 or len(memory_data) < 2:
+                return "stable"
+            
+            # Calculate average utilization
+            recent_cpu = sum(cpu_data[-3:]) / min(3, len(cpu_data))
+            older_cpu = sum(cpu_data[:-3]) / max(1, len(cpu_data) - 3)
+            
+            recent_memory = sum(memory_data[-3:]) / min(3, len(memory_data))
+            older_memory = sum(memory_data[:-3]) / max(1, len(memory_data) - 3)
+            
+            recent_avg = (recent_cpu + recent_memory) / 2
+            older_avg = (older_cpu + older_memory) / 2
+            
+            if recent_avg > older_avg * 1.05:
+                return "improving"
+            elif recent_avg < older_avg * 0.95:
+                return "declining"
+            else:
+                return "stable"
+                
+        except Exception as e:
+            logger.error(f"Error analyzing utilization trend: {e}")
+            return "stable"
+    
+    def _generate_forecast(self, historical_data: Dict[str, Any], time_range: str) -> Dict[str, Any]:
+        """Generate forecast based on historical data"""
+        try:
+            # Simple linear regression for forecasting
+            costs = historical_data.get('cost', [])
+            if len(costs) < 3:
+                return {
+                    "next_month_cost": 0.0,
+                    "next_month_savings": 0.0,
+                    "performance_prediction": 0.5
+                }
+            
+            # Calculate trend
+            n = len(costs)
+            x = list(range(n))
+            y = costs
+            
+            # Simple linear regression
+            sum_x = sum(x)
+            sum_y = sum(y)
+            sum_xy = sum(x[i] * y[i] for i in range(n))
+            sum_x2 = sum(x[i] ** 2 for i in range(n))
+            
+            slope = (n * sum_xy - sum_x * sum_y) / (n * sum_x2 - sum_x ** 2)
+            intercept = (sum_y - slope * sum_x) / n
+            
+            # Forecast next month
+            next_month_cost = slope * (n + 30) + intercept
+            current_cost = slope * n + intercept
+            
+            next_month_savings = max(0, current_cost - next_month_cost)
+            
+            return {
+                "next_month_cost": max(0, next_month_cost),
+                "next_month_savings": next_month_savings,
+                "performance_prediction": 0.75  # Placeholder
+            }
+            
+        except Exception as e:
+            logger.error(f"Error generating forecast: {e}")
+            return {
+                "next_month_cost": 0.0,
+                "next_month_savings": 0.0,
+                "performance_prediction": 0.5
+            }
+    
+    async def _get_business_alerts(
+        self, 
+        cluster_id: str, 
+        business_impact: BusinessImpact
+    ) -> List[str]:
+        """Get business alerts"""
+        alerts = []
+        
+        if business_impact.cost_savings > 2000:
+            alerts.append("High cost savings opportunity detected")
+        
+        if business_impact.risk_assessment > 0.7:
+            alerts.append("High risk environment - review optimization plans")
+        
+        if business_impact.roi_percentage > 150:
+            alerts.append("Excellent ROI opportunity available")
+        
+        return alerts
+
+
+class CostCalculator:
+    """Calculate cost analysis and savings opportunities"""
+    
+    async def analyze(
+        self, 
+        cluster_id: str, 
+        metrics: Dict[str, Any], 
+        time_range: str
+    ) -> Any:
+        """Analyze cost optimization opportunities"""
+        # Mock cost analysis
+        return type('CostAnalysis', (), {
+            'current_monthly_cost': 2500.0,
+            'potential_savings': 750.0,
+            'optimization_opportunities': [
+                'Scale down idle pods',
+                'Optimize resource requests',
+                'Implement HPA'
+            ],
+            'cost_trend': 'declining'
+        })()
+    
+    async def calculate_roi(
+        self, 
+        investment: float, 
+        savings: float, 
+        time_period: str = "12m"
+    ) -> float:
+        """Calculate ROI for optimization investment"""
+        if investment == 0:
+            return float('inf')
+        return (savings / investment) * 100
+
+
+class PerformanceAnalyzer:
+    """Analyze performance impact and opportunities"""
+    
+    async def analyze(
+        self, 
+        cluster_id: str, 
+        metrics: Dict[str, Any], 
+        time_range: str
+    ) -> Any:
+        """Analyze performance optimization opportunities"""
+        # Mock performance analysis
+        return type('PerformanceAnalysis', (), {
+            'current_performance': 0.72,
+            'performance_gain': 0.13,
+            'bottlenecks': [
+                'CPU throttling on 3 pods',
+                'Memory pressure on 2 nodes',
+                'Network latency issues'
+            ],
+            'optimization_impact': 'high'
+        })()
+    
+    async def identify_bottlenecks(
+        self, 
+        cluster_id: str, 
+        metrics: Dict[str, Any]
+    ) -> List[str]:
+        """Identify performance bottlenecks"""
+        bottlenecks = []
+        
+        if metrics.get('cpu_utilization', 0) > 0.8:
+            bottlenecks.append("High CPU utilization detected")
+        
+        if metrics.get('memory_utilization', 0) > 0.85:
+            bottlenecks.append("Memory pressure detected")
+        
+        return bottlenecks
+
+
+class ROICalculator:
+    """Calculate return on investment for optimizations"""
+    
+    async def calculate(
+        self, 
+        cluster_id: str, 
+        cost_analysis: Any, 
+        performance_analysis: Any, 
+        time_range: str
+    ) -> Any:
+        """Calculate ROI for cluster optimization"""
+        # Mock ROI calculation
+        return type('ROIAnalysis', (), {
+            'roi_percentage': 125.0,
+            'payback_period': '6 months',
+            'net_present_value': 4500.0,
+            'confidence_level': 0.85
+        })()
+    
+    async def calculate_npv(
+        self, 
+        cash_flows: List[float], 
+        discount_rate: float = 0.1
+    ) -> float:
+        """Calculate Net Present Value"""
+        npv = 0
+        for i, cash_flow in enumerate(cash_flows):
+            npv += cash_flow / ((1 + discount_rate) ** (i + 1))
+        return npv
+
+
+class BusinessRiskAssessor:
+    """Assess business risks of optimization"""
+    
+    async def assess(
+        self, 
+        cluster_id: str, 
+        metrics: Dict[str, Any], 
+        cost_analysis: Any
+    ) -> Any:
+        """Assess business risks"""
+        # Mock risk assessment
+        return type('RiskAssessment', (), {
+            'overall_risk': 0.25,
+            'technical_risk': 0.15,
+            'business_risk': 0.30,
+            'financial_risk': 0.20,
+            'mitigation_strategies': [
+                'Implement gradual rollout',
+                'Monitor closely for 48 hours',
+                'Have rollback plan ready'
+            ]
+        })()
+    
+    async def calculate_risk_score(
+        self, 
+        technical_factors: Dict[str, float], 
+        business_factors: Dict[str, float]
+    ) -> float:
+        """Calculate overall risk score"""
+        technical_risk = sum(technical_factors.values()) / len(technical_factors)
+        business_risk = sum(business_factors.values()) / len(business_factors)
+        
+        return (technical_risk + business_risk) / 2 

@@ -14,10 +14,10 @@ from datetime import datetime
 from .data_store import TimeSeriesDataStore
 from .analytics import PatternAnalyzer
 # from .intelligence import IntelligentDataCollector  # Removed to avoid circular import
-from .advanced_analytics import AdvancedIntelligenceEngine
+from .advanced_analytics import AdvancedAnalyticsEngine
 from .confidence_optimizer import ConfidenceOptimizer
 from .business_impact import BusinessImpactCorrelator
-from .executive_dashboard import ExecutiveDashboardEngine
+from .executive_dashboard import ExecutiveDashboard
 import numpy as np
 
 class ClusterDetector:
@@ -31,14 +31,14 @@ class ClusterDetector:
         self.data_store = TimeSeriesDataStore()
         self.pattern_analyzer = PatternAnalyzer()
         # self.intelligent_collector = IntelligentDataCollector()  # Removed to avoid circular import
-        self.advanced_analytics = AdvancedIntelligenceEngine()
+        self.advanced_analytics = AdvancedAnalyticsEngine()
         
         # Initialize Phase 2 components
         self.confidence_optimizer = ConfidenceOptimizer()
         self.business_impact_correlator = BusinessImpactCorrelator()
         
         # Initialize Phase 3 component
-        self.executive_dashboard_engine = ExecutiveDashboardEngine()
+        self.executive_dashboard_engine = ExecutiveDashboard()
     
     def detect_cluster(self) -> Dict[str, Any]:
         """Detect cluster type and capabilities"""
@@ -120,6 +120,12 @@ class ClusterDetector:
             info['error'] = str(e)
         
         return info
+    
+    def get_cluster_info(self, context: str = None) -> Dict[str, Any]:
+        """Public method to get detailed cluster information"""
+        if context is None:
+            context = self._get_current_context()
+        return self._get_cluster_info(context)
     
     def _detect_cluster_type(self, cluster_info: Dict[str, Any]) -> str:
         """Detect the type of Kubernetes cluster"""
@@ -760,3 +766,13 @@ class ClusterDetector:
             cluster_id, optimization_history, business_reports, kpi_history
         )
         return self.executive_dashboard_engine.export_dashboard(summary, format=format) 
+
+    def collect_cluster_data(self, cluster_id: str) -> dict:
+        """Stub: Collect cluster data for reporting. Returns minimal valid data."""
+        return {
+            'cluster_id': cluster_id,
+            'nodes': [],
+            'pods': [],
+            'metrics': {},
+            'info': self.get_cluster_info(cluster_id)
+        } 

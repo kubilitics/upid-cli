@@ -1,277 +1,576 @@
 """
 Universal Authentication System for UPID CLI
-Handles all authentication scenarios automatically
+Supports multiple authentication providers and enterprise security standards
 """
 
-import os
-import subprocess
+import asyncio
 import logging
-from typing import Dict, Any, Optional
+import jwt
+import hashlib
+import secrets
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional, Any, Union
 from dataclasses import dataclass
-from pathlib import Path
-
-from .local import LocalKubernetesDetector
-from .cloud import CloudKubernetesDetector
-from .rbac import RBACEnforcer
+from enum import Enum
+from abc import ABC, abstractmethod
 
 logger = logging.getLogger(__name__)
 
-@dataclass
-class EnvironmentInfo:
-    """Information about detected Kubernetes environment"""
-    is_local_cluster: bool
-    cluster_type: str
-    kubeconfig_path: Optional[str] = None
-    auth_required: bool = False
-    requires_setup: bool = False
-    cloud_provider: Optional[str] = None
-    context_name: Optional[str] = None
-    cluster_name: Optional[str] = None
-    region: Optional[str] = None
-    project_id: Optional[str] = None
-    resource_group: Optional[str] = None
+
+class AuthProviderType(Enum):
+    """Supported authentication provider types"""
+    KUBECONFIG = "kubeconfig"
+    TOKEN = "token"
+    OIDC = "oidc"
+    SAML = "saml"
+    LDAP = "ldap"
+    AWS_IAM = "aws_iam"
+    GCP_IAM = "gcp_iam"
+    AZURE_AD = "azure_ad"
+
+
+class AuthLevel(Enum):
+    """Authentication levels"""
+    NONE = "none"
+    READ = "read"
+    WRITE = "write"
+    ADMIN = "admin"
+
 
 @dataclass
-class AuthResult:
-    """Result of authentication attempt"""
-    success: bool
-    environment_info: EnvironmentInfo
-    auth_method: str
-    error_message: Optional[str] = None
-    requires_action: bool = False
+class AuthUser:
+    """Authenticated user information"""
+    username: str
+    email: Optional[str] = None
+    groups: List[str] = None
+    roles: List[str] = None
+    permissions: List[str] = None
+    auth_provider: AuthProviderType = None
+    auth_level: AuthLevel = AuthLevel.READ
+    session_expires: Optional[datetime] = None
 
-class UniversalAuthenticator:
+
+@dataclass
+class AuthSession:
+    """Authentication session data"""
+    session_id: str
+    user: AuthUser
+    created_at: datetime
+    expires_at: datetime
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+    last_activity: datetime = None
+
+
+class AuthProvider(ABC):
+    """Abstract base class for authentication providers"""
+    
+    @abstractmethod
+    async def authenticate(self, credentials: Dict[str, Any]) -> Optional[AuthUser]:
+        """Authenticate user with provided credentials"""
+        pass
+    
+    @abstractmethod
+    async def validate_token(self, token: str) -> Optional[AuthUser]:
+        """Validate authentication token"""
+        pass
+    
+    @abstractmethod
+    async def refresh_token(self, token: str) -> Optional[str]:
+        """Refresh authentication token"""
+        pass
+
+
+class KubeconfigAuthProvider(AuthProvider):
+    """Kubernetes kubeconfig authentication provider"""
+    
+    def __init__(self):
+        self.provider_type = AuthProviderType.KUBECONFIG
+    
+    async def authenticate(self, credentials: Dict[str, Any]) -> Optional[AuthUser]:
+        """Authenticate using kubeconfig"""
+        try:
+            # Mock kubeconfig authentication
+            # In real implementation, this would validate against kubeconfig
+            username = credentials.get('username', 'kubeconfig-user')
+            
+            return AuthUser(
+                username=username,
+                auth_provider=self.provider_type,
+                auth_level=AuthLevel.ADMIN,
+                groups=['system:masters'],
+                roles=['cluster-admin'],
+                permissions=['*']
+            )
+        except Exception as e:
+            logger.error(f"Kubeconfig authentication failed: {e}")
+            return None
+    
+    async def validate_token(self, token: str) -> Optional[AuthUser]:
+        """Validate kubeconfig token"""
+        try:
+            # Mock token validation
+            # In real implementation, this would decode and validate the token
+            return AuthUser(
+                username='kubeconfig-user',
+                auth_provider=self.provider_type,
+                auth_level=AuthLevel.ADMIN
+            )
+        except Exception as e:
+            logger.error(f"Kubeconfig token validation failed: {e}")
+            return None
+    
+    async def refresh_token(self, token: str) -> Optional[str]:
+        """Refresh kubeconfig token"""
+        try:
+            # Mock token refresh
+            # In real implementation, this would generate a new token
+            return f"refreshed-kubeconfig-token-{secrets.token_urlsafe(32)}"
+        except Exception as e:
+            logger.error(f"Kubeconfig token refresh failed: {e}")
+            return None
+
+
+class TokenAuthProvider(AuthProvider):
+    """Token-based authentication provider"""
+    
+    def __init__(self, secret_key: str = None):
+        self.provider_type = AuthProviderType.TOKEN
+        self.secret_key = secret_key or secrets.token_urlsafe(32)
+    
+    async def authenticate(self, credentials: Dict[str, Any]) -> Optional[AuthUser]:
+        """Authenticate using token"""
+        try:
+            token = credentials.get('token')
+            if not token:
+                return None
+            
+            # Validate token
+            user = await self.validate_token(token)
+            return user
+        except Exception as e:
+            logger.error(f"Token authentication failed: {e}")
+            return None
+    
+    async def validate_token(self, token: str) -> Optional[AuthUser]:
+        """Validate authentication token"""
+        try:
+            # Decode JWT token
+            payload = jwt.decode(token, self.secret_key, algorithms=['HS256'])
+            
+            return AuthUser(
+                username=payload.get('username', 'token-user'),
+                email=payload.get('email'),
+                groups=payload.get('groups', []),
+                roles=payload.get('roles', []),
+                permissions=payload.get('permissions', []),
+                auth_provider=self.provider_type,
+                auth_level=AuthLevel(payload.get('auth_level', 'read')),
+                session_expires=datetime.fromisoformat(payload.get('expires_at'))
+            )
+        except jwt.ExpiredSignatureError:
+            logger.warning("Token has expired")
+            return None
+        except jwt.InvalidTokenError as e:
+            logger.error(f"Invalid token: {e}")
+            return None
+        except Exception as e:
+            logger.error(f"Token validation failed: {e}")
+            return None
+    
+    async def authenticate(self, credentials: Dict[str, Any]) -> Optional[AuthUser]:
+        """Authenticate using token"""
+        try:
+            token = credentials.get('token')
+            if not token:
+                return None
+            
+            # Validate token
+            user = await self.validate_token(token)
+            return user
+        except Exception as e:
+            logger.error(f"Token authentication failed: {e}")
+            return None
+    
+    async def refresh_token(self, token: str) -> Optional[str]:
+        """Refresh authentication token"""
+        try:
+            # Validate current token
+            user = await self.validate_token(token)
+            if not user:
+                return None
+            
+            # Generate new token
+            payload = {
+                'username': user.username,
+                'email': user.email,
+                'groups': user.groups,
+                'roles': user.roles,
+                'permissions': user.permissions,
+                'auth_level': user.auth_level.value,
+                'expires_at': (datetime.now() + timedelta(hours=24)).isoformat(),
+                'iat': datetime.now().isoformat()
+            }
+            
+            new_token = jwt.encode(payload, self.secret_key, algorithm='HS256')
+            return new_token
+        except Exception as e:
+            logger.error(f"Token refresh failed: {e}")
+            return None
+
+
+class OIDCAuthProvider(AuthProvider):
+    """OpenID Connect authentication provider"""
+    
+    def __init__(self, issuer_url: str, client_id: str, client_secret: str):
+        self.provider_type = AuthProviderType.OIDC
+        self.issuer_url = issuer_url
+        self.client_id = client_id
+        self.client_secret = client_secret
+    
+    async def authenticate(self, credentials: Dict[str, Any]) -> Optional[AuthUser]:
+        """Authenticate using OIDC"""
+        try:
+            # Mock OIDC authentication
+            # In real implementation, this would validate against OIDC provider
+            username = credentials.get('username', 'oidc-user')
+            
+            return AuthUser(
+                username=username,
+                email=f"{username}@example.com",
+                auth_provider=self.provider_type,
+                auth_level=AuthLevel.WRITE,
+                groups=['developers'],
+                roles=['developer'],
+                permissions=['read', 'write']
+            )
+        except Exception as e:
+            logger.error(f"OIDC authentication failed: {e}")
+            return None
+    
+    async def validate_token(self, token: str) -> Optional[AuthUser]:
+        """Validate OIDC token"""
+        try:
+            # Mock OIDC token validation
+            # In real implementation, this would validate against OIDC provider
+            return AuthUser(
+                username='oidc-user',
+                email='oidc-user@example.com',
+                auth_provider=self.provider_type,
+                auth_level=AuthLevel.WRITE
+            )
+        except Exception as e:
+            logger.error(f"OIDC token validation failed: {e}")
+            return None
+    
+    async def refresh_token(self, token: str) -> Optional[str]:
+        """Refresh OIDC token"""
+        try:
+            # Mock OIDC token refresh
+            # In real implementation, this would refresh with OIDC provider
+            return f"refreshed-oidc-token-{secrets.token_urlsafe(32)}"
+        except Exception as e:
+            logger.error(f"OIDC token refresh failed: {e}")
+            return None
+
+
+class UniversalAuthManager:
     """
-    Universal authenticator that handles all authentication scenarios automatically
-    Based on the architecture guide implementation
+    Universal Authentication Manager
+    Manages multiple authentication providers and sessions
     """
     
     def __init__(self):
-        self.local_detector = LocalKubernetesDetector()
-        self.cloud_detector = CloudKubernetesDetector()
-        self.rbac_enforcer = RBACEnforcer()
+        self.providers: Dict[AuthProviderType, AuthProvider] = {}
+        self.sessions: Dict[str, AuthSession] = {}
+        self.secret_key = secrets.token_urlsafe(32)
         
-    async def authenticate_user(self, context: Dict[str, Any]) -> AuthResult:
-        """
-        Universal authentication flow
-        """
-        try:
-            # Step 1: Detect environment
-            env_info = await self.detect_environment()
-            
-            # Step 2: Choose authentication strategy
-            if env_info.is_local_cluster:
-                return await self.authenticate_local(env_info)
-            elif env_info.cloud_provider:
-                return await self.authenticate_cloud(env_info)
-            else:
-                return await self.authenticate_upid_saas(context)
-                
-        except Exception as e:
-            logger.error(f"Authentication failed: {e}")
-            return AuthResult(
-                success=False,
-                environment_info=EnvironmentInfo(
-                    is_local_cluster=False,
-                    cluster_type="unknown",
-                    auth_required=True,
-                    requires_setup=True
-                ),
-                auth_method="unknown",
-                error_message=str(e),
-                requires_action=True
-            )
+        # Initialize default providers
+        self._init_default_providers()
     
-    async def detect_environment(self) -> EnvironmentInfo:
-        """
-        Auto-detect Kubernetes environment
-        """
-        # Check for local clusters first
-        local_info = await self.local_detector.detect()
-        if local_info.detected:
-            return EnvironmentInfo(
-                is_local_cluster=True,
-                cluster_type=local_info.cluster_type,
-                kubeconfig_path=local_info.kubeconfig_path,
-                auth_required=False,
-                context_name=local_info.context_name,
-                cluster_name=local_info.cluster_name
-            )
-        
-        # Check for cloud clusters
-        cloud_info = await self.cloud_detector.detect()
-        if cloud_info.detected:
-            return EnvironmentInfo(
-                is_local_cluster=False,
-                cluster_type=cloud_info.cluster_type,
-                cloud_provider=cloud_info.provider,
-                kubeconfig_path=cloud_info.kubeconfig_path,
-                auth_required=cloud_info.auth_required,
-                context_name=cloud_info.context_name,
-                cluster_name=cloud_info.cluster_name,
-                region=cloud_info.region,
-                project_id=cloud_info.project_id,
-                resource_group=cloud_info.resource_group
-            )
-        
-        # No cluster detected - prompt for UPID SaaS
-        return EnvironmentInfo(
-            is_local_cluster=False,
-            cluster_type="unknown",
-            auth_required=True,
-            requires_setup=True
+    def _init_default_providers(self):
+        """Initialize default authentication providers"""
+        self.providers[AuthProviderType.KUBECONFIG] = KubeconfigAuthProvider()
+        self.providers[AuthProviderType.TOKEN] = TokenAuthProvider(self.secret_key)
+        self.providers[AuthProviderType.OIDC] = OIDCAuthProvider(
+            issuer_url="https://accounts.google.com",
+            client_id="mock-client-id",
+            client_secret="mock-client-secret"
         )
     
-    async def authenticate_local(self, env_info: EnvironmentInfo) -> AuthResult:
+    async def authenticate(
+        self, 
+        provider_type: AuthProviderType, 
+        credentials: Dict[str, Any]
+    ) -> Optional[AuthSession]:
         """
-        Authenticate with local Kubernetes cluster
-        """
-        try:
-            # Test connection to local cluster
-            if await self.test_local_connection(env_info):
-                return AuthResult(
-                    success=True,
-                    environment_info=env_info,
-                    auth_method="local_k8s"
-                )
-            else:
-                return AuthResult(
-                    success=False,
-                    environment_info=env_info,
-                    auth_method="local_k8s",
-                    error_message="Failed to connect to local cluster",
-                    requires_action=True
-                )
-        except Exception as e:
-            return AuthResult(
-                success=False,
-                environment_info=env_info,
-                auth_method="local_k8s",
-                error_message=str(e),
-                requires_action=True
-            )
-    
-    async def authenticate_cloud(self, env_info: EnvironmentInfo) -> AuthResult:
-        """
-        Authenticate with cloud Kubernetes cluster
-        """
-        try:
-            # Test connection to cloud cluster
-            if await self.test_cloud_connection(env_info):
-                return AuthResult(
-                    success=True,
-                    environment_info=env_info,
-                    auth_method="cloud_k8s"
-                )
-            else:
-                return AuthResult(
-                    success=False,
-                    environment_info=env_info,
-                    auth_method="cloud_k8s",
-                    error_message="Failed to connect to cloud cluster",
-                    requires_action=True
-                )
-        except Exception as e:
-            return AuthResult(
-                success=False,
-                environment_info=env_info,
-                auth_method="cloud_k8s",
-                error_message=str(e),
-                requires_action=True
-            )
-    
-    async def authenticate_upid_saas(self, context: Dict[str, Any]) -> AuthResult:
-        """
-        Authenticate with UPID SaaS platform
-        """
-        try:
-            # This would integrate with the existing AuthManager
-            # For now, return a setup-required result
-            return AuthResult(
-                success=False,
-                environment_info=EnvironmentInfo(
-                    is_local_cluster=False,
-                    cluster_type="saas",
-                    auth_required=True,
-                    requires_setup=True
-                ),
-                auth_method="upid_saas",
-                error_message="UPID SaaS authentication not yet implemented",
-                requires_action=True
-            )
-        except Exception as e:
-            return AuthResult(
-                success=False,
-                environment_info=EnvironmentInfo(
-                    is_local_cluster=False,
-                    cluster_type="saas",
-                    auth_required=True,
-                    requires_setup=True
-                ),
-                auth_method="upid_saas",
-                error_message=str(e),
-                requires_action=True
-            )
-    
-    async def test_local_connection(self, env_info: EnvironmentInfo) -> bool:
-        """
-        Test connection to local Kubernetes cluster
-        """
-        try:
-            # Use kubectl to test connection
-            result = subprocess.run(
-                ['kubectl', 'cluster-info'],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-            return result.returncode == 0
-        except Exception as e:
-            logger.error(f"Local connection test failed: {e}")
-            return False
-    
-    async def test_cloud_connection(self, env_info: EnvironmentInfo) -> bool:
-        """
-        Test connection to cloud Kubernetes cluster
-        """
-        try:
-            # Use kubectl to test connection
-            result = subprocess.run(
-                ['kubectl', 'cluster-info'],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
-            return result.returncode == 0
-        except Exception as e:
-            logger.error(f"Cloud connection test failed: {e}")
-            return False
-    
-    def get_cluster_info(self) -> Dict[str, Any]:
-        """
-        Get information about the current cluster
-        """
-        try:
-            # Get cluster info
-            result = subprocess.run(
-                ['kubectl', 'cluster-info'],
-                capture_output=True,
-                text=True,
-                timeout=10
-            )
+        Authenticate user with specified provider
+        
+        Args:
+            provider_type: Type of authentication provider
+            credentials: Authentication credentials
             
-            if result.returncode == 0:
-                return {
-                    'cluster_info': result.stdout,
-                    'connection_status': 'connected'
-                }
-            else:
-                return {
-                    'cluster_info': 'Not connected',
-                    'connection_status': 'disconnected'
-                }
+        Returns:
+            AuthSession: Authentication session if successful
+        """
+        try:
+            logger.info(f"Authenticating with provider: {provider_type.value}")
+            
+            # Get provider
+            provider = self.providers.get(provider_type)
+            if not provider:
+                logger.error(f"Authentication provider not found: {provider_type}")
+                return None
+            
+            # Authenticate user
+            user = await provider.authenticate(credentials)
+            if not user:
+                logger.error(f"Authentication failed for provider: {provider_type}")
+                return None
+            
+            # Create session
+            session = await self._create_session(user)
+            
+            logger.info(f"Authentication successful for user: {user.username}")
+            return session
+            
         except Exception as e:
-            return {
-                'cluster_info': f'Error: {str(e)}',
-                'connection_status': 'error'
-            } 
+            logger.error(f"Authentication error: {e}")
+            return None
+    
+    async def validate_session(self, session_id: str) -> Optional[AuthSession]:
+        """
+        Validate authentication session
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            AuthSession: Valid session or None
+        """
+        try:
+            session = self.sessions.get(session_id)
+            if not session:
+                logger.warning(f"Session not found: {session_id}")
+                return None
+            
+            # Check if session is expired
+            if datetime.now() > session.expires_at:
+                logger.warning(f"Session expired: {session_id}")
+                await self._remove_session(session_id)
+                return None
+            
+            # Update last activity
+            session.last_activity = datetime.now()
+            
+            return session
+            
+        except Exception as e:
+            logger.error(f"Session validation error: {e}")
+            return None
+    
+    async def refresh_session(self, session_id: str) -> Optional[AuthSession]:
+        """
+        Refresh authentication session
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            AuthSession: Refreshed session or None
+        """
+        try:
+            session = await self.validate_session(session_id)
+            if not session:
+                return None
+            
+            # Extend session expiration
+            session.expires_at = datetime.now() + timedelta(hours=24)
+            session.last_activity = datetime.now()
+            
+            # Refresh token if provider supports it
+            provider = self.providers.get(session.user.auth_provider)
+            if provider and hasattr(provider, 'refresh_token'):
+                new_token = await provider.refresh_token(session_id)
+                if new_token:
+                    # Update session with new token info
+                    session.last_activity = datetime.now()
+            
+            return session
+            
+        except Exception as e:
+            logger.error(f"Session refresh error: {e}")
+            return None
+    
+    async def logout(self, session_id: str) -> bool:
+        """
+        Logout user and invalidate session
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            bool: True if logout successful
+        """
+        try:
+            if session_id in self.sessions:
+                await self._remove_session(session_id)
+                logger.info(f"User logged out: {session_id}")
+                return True
+            return False
+            
+        except Exception as e:
+            logger.error(f"Logout error: {e}")
+            return False
+    
+    async def get_user_permissions(self, session_id: str) -> List[str]:
+        """
+        Get user permissions for session
+        
+        Args:
+            session_id: Session identifier
+            
+        Returns:
+            List[str]: User permissions
+        """
+        try:
+            session = await self.validate_session(session_id)
+            if not session:
+                return []
+            
+            return session.user.permissions or []
+            
+        except Exception as e:
+            logger.error(f"Error getting user permissions: {e}")
+            return []
+    
+    async def check_permission(
+        self, 
+        session_id: str, 
+        required_permission: str
+    ) -> bool:
+        """
+        Check if user has required permission
+        
+        Args:
+            session_id: Session identifier
+            required_permission: Required permission
+            
+        Returns:
+            bool: True if user has permission
+        """
+        try:
+            permissions = await self.get_user_permissions(session_id)
+            return required_permission in permissions or '*' in permissions
+            
+        except Exception as e:
+            logger.error(f"Permission check error: {e}")
+            return False
+    
+    async def _create_session(self, user: AuthUser) -> AuthSession:
+        """Create new authentication session"""
+        session_id = secrets.token_urlsafe(32)
+        expires_at = datetime.now() + timedelta(hours=24)
+        
+        session = AuthSession(
+            session_id=session_id,
+            user=user,
+            created_at=datetime.now(),
+            expires_at=expires_at,
+            last_activity=datetime.now()
+        )
+        
+        self.sessions[session_id] = session
+        return session
+    
+    async def _remove_session(self, session_id: str):
+        """Remove authentication session"""
+        if session_id in self.sessions:
+            del self.sessions[session_id]
+    
+    async def cleanup_expired_sessions(self):
+        """Clean up expired sessions"""
+        try:
+            current_time = datetime.now()
+            expired_sessions = [
+                session_id for session_id, session in self.sessions.items()
+                if current_time > session.expires_at
+            ]
+            
+            for session_id in expired_sessions:
+                await self._remove_session(session_id)
+            
+            if expired_sessions:
+                logger.info(f"Cleaned up {len(expired_sessions)} expired sessions")
+                
+        except Exception as e:
+            logger.error(f"Session cleanup error: {e}")
+
+
+class AuthMiddleware:
+    """Authentication middleware for API requests"""
+    
+    def __init__(self, auth_manager: UniversalAuthManager):
+        self.auth_manager = auth_manager
+    
+    async def authenticate_request(
+        self, 
+        request_headers: Dict[str, str]
+    ) -> Optional[AuthSession]:
+        """
+        Authenticate API request
+        
+        Args:
+            request_headers: Request headers
+            
+        Returns:
+            AuthSession: Authentication session or None
+        """
+        try:
+            # Extract session token from headers
+            session_token = request_headers.get('Authorization', '').replace('Bearer ', '')
+            if not session_token:
+                return None
+            
+            # Validate session
+            session = await self.auth_manager.validate_session(session_token)
+            return session
+            
+        except Exception as e:
+            logger.error(f"Request authentication error: {e}")
+            return None
+    
+    async def require_auth(
+        self, 
+        session: Optional[AuthSession], 
+        required_level: AuthLevel = AuthLevel.READ
+    ) -> bool:
+        """
+        Require authentication at specified level
+        
+        Args:
+            session: Authentication session
+            required_level: Required authentication level
+            
+        Returns:
+            bool: True if authentication requirements met
+        """
+        if not session:
+            return False
+        
+        # Check authentication level
+        # Define level hierarchy
+        level_hierarchy = {
+            AuthLevel.NONE: 0,
+            AuthLevel.READ: 1,
+            AuthLevel.WRITE: 2,
+            AuthLevel.ADMIN: 3
+        }
+        
+        user_level = level_hierarchy.get(session.user.auth_level, 0)
+        required_level_value = level_hierarchy.get(required_level, 0)
+        
+        if user_level < required_level_value:
+            return False
+        
+        return True 

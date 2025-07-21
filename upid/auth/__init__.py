@@ -3,14 +3,52 @@ UPID Authentication System
 Universal authentication for local and cloud Kubernetes clusters
 """
 
-from .universal_auth import UniversalAuthenticator
-from .local import LocalKubernetesDetector
-from .cloud import CloudKubernetesDetector
-from .rbac import RBACEnforcer
+from .universal_auth import (
+    UniversalAuthManager,
+    AuthProviderType,
+    AuthLevel,
+    AuthUser,
+    AuthSession,
+    KubeconfigAuthProvider,
+    TokenAuthProvider,
+    OIDCAuthProvider,
+    AuthMiddleware
+)
+from .rbac import (
+    RBACManager,
+    Permission,
+    Role,
+    RBACRole,
+    RBACUser,
+    RBACGroup
+)
+from .audit import (
+    AuditTrailManager,
+    AuditEventType,
+    AuditSeverity,
+    AuditEvent,
+    AuditFilter
+)
 
 __all__ = [
-    'UniversalAuthenticator',
-    'LocalKubernetesDetector', 
-    'CloudKubernetesDetector',
-    'RBACEnforcer'
+    'UniversalAuthManager',
+    'AuthProviderType',
+    'AuthLevel',
+    'AuthUser',
+    'AuthSession',
+    'KubeconfigAuthProvider',
+    'TokenAuthProvider',
+    'OIDCAuthProvider',
+    'AuthMiddleware',
+    'RBACManager',
+    'Permission',
+    'Role',
+    'RBACRole',
+    'RBACUser',
+    'RBACGroup',
+    'AuditTrailManager',
+    'AuditEventType',
+    'AuditSeverity',
+    'AuditEvent',
+    'AuditFilter'
 ] 

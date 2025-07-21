@@ -15,7 +15,9 @@ class TestConfig:
     @pytest.mark.unit
     def test_config_initialization(self, temp_config_dir):
         """Test config initialization with default values"""
+        # Create a fresh config instance with a unique config file
         config = Config()
+        config.config_file = Path(temp_config_dir) / 'test_config.json'
         
         # Test default values
         assert config.get('api_url') == 'https://api.upid.io'
