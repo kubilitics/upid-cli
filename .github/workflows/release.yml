@@ -6,9 +6,36 @@ on:
       - 'v*'
 
 jobs:
-  build-and-release:
+  build-linux:
     runs-on: ubuntu-latest
-    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Build Linux binary
+      run: |
+        pyinstaller --onefile --name upid-linux-x86_64 upid/cli.py
+        tar -czf upid-linux-x86_64.tar.gz dist/upid-linux-x86_64 install/install.sh docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
+        
+    - name: Upload Linux binary
+      uses: actions/upload-artifact@v3
+      with:
+        name: upid-linux-x86_64
+        path: upid-linux-x86_64.tar.gz
+
+  build-macos:
+    runs-on: macos-latest
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
@@ -29,28 +56,65 @@ jobs:
         pyinstaller --onefile --name upid-darwin-arm64 upid/cli.py
         tar -czf upid-darwin-arm64.tar.gz dist/upid-darwin-arm64 install/install.sh docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
         
-    - name: Build Linux binary
-      run: |
-        pyinstaller --onefile --name upid-linux-x86_64 upid/cli.py
-        tar -czf upid-linux-x86_64.tar.gz dist/upid-linux-x86_64 install/install.sh docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
-        
-    - name: Create Windows package
-      run: |
-        zip -r upid-windows-x86_64.zip install/install.ps1 docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
-        
-    - name: Create Release
-      uses: softprops/action-gh-release@v1
+    - name: Upload macOS binary
+      uses: actions/upload-artifact@v3
       with:
-        files: |
-          upid-darwin-arm64.tar.gz
-          upid-linux-x86_64.tar.gz
-          upid-windows-x86_64.zip
+        name: upid-darwin-arm64
+        path: upid-darwin-arm64.tar.gz
+
+  build-windows:
+    runs-on: windows-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+        
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+        pip install pyinstaller
+        
+    - name: Build Windows binary
+      run: |
+        pyinstaller --onefile --name upid-windows-x86_64 upid/cli.py
+        Compress-Archive -Path "dist/upid-windows-x86_64.exe", "install/install.ps1", "docs/guides/UPID_USER_MANUAL.md", "docs/guides/UPID_QUICK_REFERENCE.md", "docs/guides/UPID_INSTALLATION_GUIDE.md" -DestinationPath "upid-windows-x86_64.zip"
+        
+    - name: Upload Windows binary
+      uses: actions/upload-artifact@v3
+      with:
+        name: upid-windows-x86_64
+        path: upid-windows-x86_64.zip
+
+  create-release:
+    needs: [build-linux, build-macos, build-windows]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download all artifacts
+      uses: actions/download-artifact@v3
+      
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: UPID CLI ${{ github.ref_name }}
         body: |
-          # UPID CLI v${{ github.ref_name }} - Production Ready Release
+          # UPID CLI ${{ github.ref_name }} - Production Ready Release
           
           ## What's New
           
-          UPID CLI v${{ github.ref_name }} represents a complete overhaul from prototype to production-ready Kubernetes intelligence platform. All mock data has been removed and replaced with real implementations.
+          UPID CLI ${{ github.ref_name }} represents a complete overhaul from prototype to production-ready Kubernetes intelligence platform. All mock data has been removed and replaced with real implementations.
           
           ### Key Features
           
@@ -64,9 +128,13 @@ jobs:
           ### Quick Start
           
           ```bash
-          # Download and install
+          # Download and install (macOS/Linux)
           curl -L https://github.com/kubilitics/upid-cli/releases/download/${{ github.ref_name }}/upid-darwin-arm64.tar.gz | tar -xz
           sudo mv upid-darwin-arm64 /usr/local/bin/upid
+          
+          # Or for Linux
+          curl -L https://github.com/kubilitics/upid-cli/releases/download/${{ github.ref_name }}/upid-linux-x86_64.tar.gz | tar -xz
+          sudo mv upid-linux-x86_64 /usr/local/bin/upid
           
           # Authenticate
           upid auth login
@@ -99,6 +167,36 @@ jobs:
           
           ---
           
-          **Download and start using UPID CLI v${{ github.ref_name }} today!**
+          **Download and start using UPID CLI ${{ github.ref_name }} today!**
+        draft: false
+        prerelease: false
+        
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./upid-linux-x86_64/upid-linux-x86_64.tar.gz
+        asset_name: upid-linux-x86_64.tar.gz
+        asset_content_type: application/gzip
+        
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./upid-darwin-arm64/upid-darwin-arm64.tar.gz
+        asset_name: upid-darwin-arm64.tar.gz
+        asset_content_type: application/gzip
+        
+    - name: Upload Release Assets
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ./upid-windows-x86_64/upid-windows-x86_64.zip
+        asset_name: upid-windows-x86_64.zip
+        asset_content_type: application/zip
