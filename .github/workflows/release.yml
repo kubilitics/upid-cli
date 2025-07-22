@@ -103,12 +103,12 @@ jobs:
       uses: actions/download-artifact@v4
       
     - name: Create Release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
-        tag_name: ${{ github.ref }}
-        release_name: UPID CLI ${{ github.ref_name }}
+        files: |
+          upid-linux-x86_64/upid-linux-x86_64.tar.gz
+          upid-darwin-arm64/upid-darwin-arm64.tar.gz
+          upid-windows-x86_64/upid-windows-x86_64.zip
         body: |
           # UPID CLI ${{ github.ref_name }} - Production Ready Release
           
@@ -168,35 +168,5 @@ jobs:
           ---
           
           **Download and start using UPID CLI ${{ github.ref_name }} today!**
-        draft: false
-        prerelease: false
-        
-    - name: Upload Release Assets
-      uses: actions/upload-release-asset@v1
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./upid-linux-x86_64/upid-linux-x86_64.tar.gz
-        asset_name: upid-linux-x86_64.tar.gz
-        asset_content_type: application/gzip
-        
-    - name: Upload Release Assets
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./upid-darwin-arm64/upid-darwin-arm64.tar.gz
-        asset_name: upid-darwin-arm64.tar.gz
-        asset_content_type: application/gzip
-        
-    - name: Upload Release Assets
-      uses: actions/upload-release-asset@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./upid-windows-x86_64/upid-windows-x86_64.zip
-        asset_name: upid-windows-x86_64.zip
-        asset_content_type: application/zip
