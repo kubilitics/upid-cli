@@ -29,7 +29,7 @@ jobs:
         tar -czf upid-linux-x86_64.tar.gz dist/upid-linux-x86_64 install/install.sh docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
         
     - name: Upload Linux binary
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: upid-linux-x86_64
         path: upid-linux-x86_64.tar.gz
@@ -57,7 +57,7 @@ jobs:
         tar -czf upid-darwin-arm64.tar.gz dist/upid-darwin-arm64 install/install.sh docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
         
     - name: Upload macOS binary
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: upid-darwin-arm64
         path: upid-darwin-arm64.tar.gz
@@ -85,7 +85,7 @@ jobs:
         Compress-Archive -Path "dist/upid-windows-x86_64.exe", "install/install.ps1", "docs/guides/UPID_USER_MANUAL.md", "docs/guides/UPID_QUICK_REFERENCE.md", "docs/guides/UPID_INSTALLATION_GUIDE.md" -DestinationPath "upid-windows-x86_64.zip"
         
     - name: Upload Windows binary
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: upid-windows-x86_64
         path: upid-windows-x86_64.zip
@@ -100,7 +100,7 @@ jobs:
       uses: actions/checkout@v4
       
     - name: Download all artifacts
-      uses: actions/download-artifact@v3
+      uses: actions/download-artifact@v4
       
     - name: Create Release
       uses: actions/create-release@v1
