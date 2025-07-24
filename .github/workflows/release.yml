@@ -23,9 +23,21 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
         
+    - name: Cache pip dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+    - name: Install UPX (Linux only)
+      if: runner.os == 'Linux'
+      run: sudo apt-get update && sudo apt-get install -y upx
     - name: Build Linux binary
       run: |
-        pyinstaller --onefile --name upid-linux-x86_64 upid/cli.py
+        pyinstaller --onefile --clean --noconfirm --strip --upx-dir=/usr/bin \
+          --exclude-module=tkinter --exclude-module=unittest --exclude-module=pydoc \
+          --name upid-linux-x86_64 upid/cli.py
         tar -czf upid-linux-x86_64.tar.gz dist/upid-linux-x86_64 install/install.sh docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
         
     - name: Upload Linux binary
@@ -51,9 +63,14 @@ jobs:
         pip install -r requirements.txt
         pip install pyinstaller
         
+    - name: Install UPX (macOS only)
+      if: runner.os == 'macOS'
+      run: brew install upx
     - name: Build macOS binary
       run: |
-        pyinstaller --onefile --name upid-darwin-arm64 upid/cli.py
+        pyinstaller --onefile --clean --noconfirm --strip --upx-dir=/opt/homebrew/bin \
+          --exclude-module=tkinter --exclude-module=unittest --exclude-module=pydoc \
+          --name upid-darwin-arm64 upid/cli.py
         tar -czf upid-darwin-arm64.tar.gz dist/upid-darwin-arm64 install/install.sh docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
         
     - name: Upload macOS binary
@@ -81,7 +98,9 @@ jobs:
         
     - name: Build Windows binary
       run: |
-        pyinstaller --onefile --name upid-windows-x86_64 upid/cli.py
+        pyinstaller --onefile --clean --noconfirm \
+          --exclude-module=tkinter --exclude-module=unittest --exclude-module=pydoc \
+          --name upid-windows-x86_64 upid/cli.py
         Compress-Archive -Path "dist/upid-windows-x86_64.exe", "install/install.ps1", "docs/guides/UPID_USER_MANUAL.md", "docs/guides/UPID_QUICK_REFERENCE.md", "docs/guides/UPID_INSTALLATION_GUIDE.md" -DestinationPath "upid-windows-x86_64.zip"
         
     - name: Upload Windows binary
