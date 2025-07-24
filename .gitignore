@@ -185,4 +185,4 @@ htmlcov/
 
 # PyInstaller
 *.spec 
-upid_final_prd.md
+upid_final_prd.mdupid-*
