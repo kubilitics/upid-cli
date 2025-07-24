@@ -185,4 +185,7 @@ htmlcov/
 
 # PyInstaller
 *.spec 
-upid_final_prd.mdupid-*
+
+# UPID Binaries (distributed via GitHub Releases)
+upid-*
+upid_binary
