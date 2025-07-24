@@ -41,10 +41,17 @@ jobs:
     - name: Create virtual environment and install dependencies
       run: |
         python -m venv venv
-        source venv/bin/activate || venv\Scripts\activate
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install pyinstaller
+        if [ "$RUNNER_OS" = "Windows" ]; then
+          venv\Scripts\pip.exe install --upgrade pip
+          venv\Scripts\pip.exe install -r requirements.txt
+          venv\Scripts\pip.exe install pyinstaller
+        else
+          source venv/bin/activate
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pyinstaller
+        fi
+      shell: bash
         
     - name: Build enterprise binary using build system
       run: |
