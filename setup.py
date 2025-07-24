@@ -54,7 +54,7 @@ setup(
     },
     entry_points={
         "console_scripts": [
-            "upid=upid.cli:main",
+            "upid=upid.cli:cli",
         ],
     },
     include_package_data=True,
