@@ -51,22 +51,22 @@ curl -L https://github.com/your-org/upid-cli/releases/latest/download/upid-linux
 chmod +x upid
 
 # Verify installation
-./upid --version
+upid --version
 ```
 
 ### 30-Second Demo
 ```bash
 # 1. Analyze your cluster
-./upid analyze cluster
+upid analyze cluster
 
 # 2. Find idle workloads (with health check filtering)
-./upid analyze idle default --confidence 0.80
+upid analyze idle default --confidence 0.80
 
 # 3. Safe zero-pod scaling simulation
-./upid optimize zero-pod default --dry-run
+upid optimize zero-pod default --dry-run
 
 # 4. Generate executive cost report
-./upid report executive default
+upid report executive default
 ```
 
 ---

@@ -1,14 +1,14 @@
 """
-UPID CLI - Kubernetes Resource Optimization Platform
-Enterprise-grade resource optimization with >99% accuracy
+UPID CLI - Universal Pod Intelligence Director
+Enterprise-grade Kubernetes cost optimization platform
 """
 
 __version__ = "1.0.0"
+__title__ = "UPID CLI"
 __author__ = "UPID Team"
-__email__ = "team@upid.io"
+__description__ = "Universal Pod Intelligence Director - Kubernetes optimization platform"
 
-import sys
-if ("pytest" not in sys.modules and "unittest" not in sys.modules):
-    from .cli import cli
+# Export main components
+from .cli import cli
 
-__all__ = ["cli"]
+__all__ = ["cli", "__version__"]
