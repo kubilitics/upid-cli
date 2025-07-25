@@ -15,9 +15,10 @@
 UPID CLI is a comprehensive Kubernetes intelligence and optimization platform that provides real-time analytics, machine learning insights, and automated optimization recommendations for your Kubernetes clusters.
 
 ### Key Features
+- **Production Data System**: Real Kubernetes cluster integration with unified data ingestion
 - **Real-time Analytics**: Live monitoring of cluster performance and resource usage
-- **Machine Learning**: Predictive analytics for resource planning and cost optimization
-- **Business Intelligence**: KPI tracking and ROI analysis
+- **Cost Optimization**: Real-time cost analysis and optimization recommendations
+- **Business Intelligence**: KPI tracking and ROI analysis with production data
 - **Security**: Enterprise-grade authentication with MFA support
 - **Multi-cloud Support**: AWS, GCP, and Azure integration
 
@@ -71,18 +72,32 @@ sudo mv upid-darwin-arm64 /usr/local/bin/upid
 upid init
 ```
 
-2. **Authenticate**
+2. **Connect to your Kubernetes cluster**
+```bash
+# Ensure kubectl is configured
+kubectl cluster-info
+
+# UPID CLI will automatically detect your cluster
+```
+
+3. **Authenticate**
 ```bash
 upid auth login
 # Enter your credentials when prompted
 ```
 
-3. **Analyze your cluster**
+4. **Analyze your cluster with production data**
 ```bash
 upid analyze cluster
 ```
 
-4. **View executive dashboard**
+5. **View cost analysis and optimizations**
+```bash
+upid optimize resources
+upid optimize cost
+```
+
+6. **View executive dashboard**
 ```bash
 upid dashboard
 ```
@@ -116,6 +131,209 @@ upid auth saml --metadata-url https://your-saml-provider.com/metadata
 
 # LDAP
 upid auth ldap --server ldap://your-ldap-server.com
+```
+
+## Production Data System
+
+UPID CLI v2.0 includes a production-ready data system that provides real-time integration with your Kubernetes clusters.
+
+### Data System Features
+- **Real Kubernetes Integration**: Direct connection to your cluster via kubectl
+- **Unified Data Ingestion**: Single interface for cluster, node, pod, and metrics data
+- **Cost Analysis**: Real-time cost calculation and waste identification
+- **Optimization Engine**: Automated resource optimization recommendations
+- **Business Intelligence**: KPI tracking and ROI analysis
+- **Caching System**: Performance optimization with intelligent caching
+
+### Data Sources
+- **Cluster Information**: Version, nodes, namespaces, capacity
+- **Node Metrics**: CPU, memory, network, storage usage
+- **Pod Analytics**: Resource requests, limits, actual usage
+- **Cost Data**: Monthly costs, waste analysis, potential savings
+- **Optimization Data**: Resource efficiency, idle workload detection
+- **Business Intelligence**: KPIs, trends, alerts, ROI metrics
+
+### Data System Commands
+```bash
+# Get comprehensive cluster data
+upid data cluster
+
+# View cost analysis
+upid data cost
+
+# Get optimization recommendations
+upid data optimize
+
+# View business intelligence
+upid data bi
+
+# Get system metrics
+upid data metrics
+```
+
+### Mock API System
+UPID CLI includes a production-ready mock API system for demonstrations and testing.
+
+#### Mock API Features
+- **Realistic Responses**: All API endpoints return realistic data
+- **Multiple Scenarios**: Production, staging, and development environments
+- **Authentication**: Valid credential validation (admin@upid.io/admin123)
+- **Error Handling**: Proper error responses for invalid requests
+- **Response Times**: Realistic 100-500ms response times
+
+#### Mock API Endpoints
+```bash
+# Authentication
+POST /api/v1/auth/login
+
+# Cluster Management
+GET /api/v1/clusters
+GET /api/v1/clusters/{cluster_id}
+
+# Analysis
+POST /api/v1/analyze/cluster/{cluster_id}
+POST /api/v1/analyze/idle/{cluster_id}
+POST /api/v1/analyze/costs/{cluster_id}
+
+# Optimization
+GET /api/v1/optimize/strategies/{cluster_id}
+POST /api/v1/optimize/simulate/{cluster_id}
+POST /api/v1/optimize/apply/{cluster_id}
+
+# Metrics & Reports
+GET /api/v1/metrics/{cluster_id}
+POST /api/v1/reports/{cluster_id}
+GET /api/v1/ai/insights/{cluster_id}
+```
+
+#### Using Mock API
+```bash
+# Enable mock mode
+export UPID_MOCK_MODE=true
+
+# Run CLI commands (will use mock API)
+upid analyze cluster
+upid optimize resources
+upid dashboard
+```
+
+### Enhanced Authentication System
+UPID provides a comprehensive authentication system with OIDC integration and RBAC authorization.
+
+#### Authentication Methods
+```bash
+# Standard login
+upid auth login --email user@example.com --password password
+
+# OIDC login (Google, GitHub, Azure)
+upid auth login --provider google
+upid auth login --provider github
+upid auth login --provider azure
+
+# Token-based login
+upid auth login --token your-jwt-token
+
+# SSO login
+upid auth sso --provider google
+```
+
+#### RBAC Roles and Permissions
+- **Viewer**: Read-only access to clusters, analysis, and reports
+- **Operator**: Read/write access to clusters and analysis, read-only optimization
+- **Admin**: Full access to all features including user management
+- **Super Admin**: Enterprise-wide administration capabilities
+
+#### Permission System
+```bash
+# Check user permissions
+upid auth permissions
+
+# Check specific permission
+upid auth check-permission --permission read:clusters
+
+# Check role
+upid auth check-role --role admin
+```
+
+#### Session Management
+```bash
+# Create session
+upid auth session create
+
+# List active sessions
+upid auth session list
+
+# Invalidate session
+upid auth session invalidate --session-id session_id
+```
+
+### API Client Features
+The UPID API client provides comprehensive functionality with both real and mock modes.
+
+#### Mock Mode Configuration
+```bash
+# Environment variable method
+export UPID_MOCK_MODE=true
+
+# Config file method
+upid config set mock_mode true
+
+# Direct API URL method
+upid config set api_url mock://localhost
+```
+
+#### API Client Capabilities
+- **Authentication**: Login, logout, token refresh
+- **Cluster Management**: List, get, add, update, delete clusters
+- **Analysis**: Cluster analysis, idle workload detection, cost analysis
+- **Optimization**: Strategies, simulation, application
+- **Monitoring**: Metrics collection, alerts, status
+- **Reporting**: Report generation, export, history
+- **AI/ML**: Insights, predictions, anomaly detection
+- **Enterprise**: Multi-cluster, policies, compliance
+
+#### Error Handling
+- **Retry Logic**: Automatic retries for transient failures
+- **Timeout Management**: Configurable request timeouts
+- **Error Classification**: Network, authentication, validation errors
+- **Graceful Degradation**: Fallback to mock mode when needed
+
+### Demo Scripts
+UPID CLI includes comprehensive demo scripts for different customer scenarios.
+
+#### Available Demo Scripts
+```bash
+# Executive Demo (5 minutes)
+./scripts/demos/enhanced_executive_demo.sh
+
+# Technical Demo (15 minutes)
+./scripts/demos/enhanced_technical_demo.sh
+
+# Value Proposition Demo (10 minutes)
+./scripts/demos/enhanced_value_demo.sh
+
+# Enterprise Demo (20 minutes)
+./scripts/demos/enhanced_enterprise_demo.sh
+```
+
+#### Demo Features
+- **Real CLI Commands**: All demos use actual UPID CLI commands
+- **Mock Mode Integration**: Automatically enables mock mode for demonstrations
+- **Professional Presentation**: Color-coded output with clear sections
+- **Comprehensive Coverage**: Different scenarios for various customer types
+- **Immediate Functionality**: No setup required, works out of the box
+
+#### Running Demos
+```bash
+# Make scripts executable
+chmod +x scripts/demos/enhanced_*.sh
+
+# Run executive demo
+./scripts/demos/enhanced_executive_demo.sh
+
+# Run with custom scenario
+export UPID_MOCK_SCENARIO="enterprise"
+./scripts/demos/enhanced_enterprise_demo.sh
 ```
 
 ## Core Commands
@@ -444,6 +662,69 @@ cloud:
   azure:
     enabled: false
 ```
+
+## ML Pipeline Features
+
+The UPID CLI includes a comprehensive machine learning pipeline for Kubernetes optimization:
+
+### Model Types
+
+- **Optimization Model**: Identifies resource optimization opportunities using LightGBM
+- **Prediction Model**: Forecasts future resource usage with regression analysis
+- **Anomaly Model**: Detects unusual resource usage patterns using Isolation Forest
+
+### Features
+
+- **Real-time Inference**: Sub-second prediction latency
+- **Batch Processing**: Process multiple workloads efficiently
+- **Feature Engineering**: Extract 19 features from Kubernetes metrics
+- **Model Versioning**: Track model algorithms and versions
+- **Performance Monitoring**: Track accuracy and processing time
+- **Automatic Retraining**: Retrain models based on age/performance
+- **Mock Models**: Fallback when ML libraries unavailable
+
+### Usage
+
+```bash
+# Train all models
+upid ml train
+
+# Make predictions for a specific workload
+upid ml predict --workload my-app
+
+# Batch predictions for all workloads
+upid ml predict --batch
+
+# Get model performance metrics
+upid ml metrics
+
+# Check model status
+upid ml status
+
+# Retrain models if needed
+upid ml retrain
+```
+
+### ML Pipeline Components
+
+#### Feature Engineering
+The ML pipeline extracts 19 features from Kubernetes metrics:
+- **Pod-level**: CPU usage, memory usage, network activity, restart count, age
+- **Workload-level**: Workload type, namespace, replica count, resource requests/limits
+- **Cluster-level**: CPU/memory utilization, pod density, efficiency score
+- **Time-based**: Hour of day, day of week, business hours, weekend
+
+#### Model Training
+- **Data Preparation**: Historical metrics converted to training data
+- **Automated Training**: Train models with validation
+- **Performance Metrics**: Track accuracy, precision, recall
+- **Retraining Logic**: Automatic retraining based on age/performance
+
+#### Inference System
+- **Real-time Predictions**: Single workload inference
+- **Batch Processing**: Multi-workload inference
+- **Model Versioning**: Track model algorithms and versions
+- **Performance Monitoring**: Processing time and error tracking
 
 ## API Reference
 

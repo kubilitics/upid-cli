@@ -7,6 +7,24 @@ from setuptools import setup, find_packages
 import os
 from pathlib import Path
 
+# Import centralized configuration
+try:
+    from upid_config import get_config
+    config = get_config()
+    product = config.product
+except ImportError:
+    # Fallback values if config system not available
+    class FallbackProduct:
+        name = "upid-cli"
+        version = "1.0.0"
+        author = "UPID Team"
+        author_email = "hello@kubilitics.com"
+        description = "Universal Kubernetes Resource Optimization Platform - CLI Tool"
+        homepage = "https://github.com/kubilitics/upid-cli"
+        repository = "https://github.com/kubilitics/upid-cli"
+        license = "MIT"
+    product = FallbackProduct()
+
 # Read the README file
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text()
@@ -17,18 +35,19 @@ def read_requirements(filename):
         return [line.strip() for line in f if line.strip() and not line.startswith('#')]
 
 setup(
-    name="upid-cli",
-    version="1.0.0",
-    author="UPID Team",
-    author_email="hello@kubilitics.com",
-    description="Universal Kubernetes Resource Optimization Platform - CLI Tool",
+    name=product.name.lower().replace(" ", "-"),
+    version=product.version,
+    author=product.author,
+    author_email=product.author_email,
+    description=product.description,
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/kubilitics/upid-cli",
+    url=product.repository,
     project_urls={
-        "Bug Reports": "https://github.com/kubilitics/upid-cli/issues",
-        "Source": "https://github.com/kubilitics/upid-cli",
-        "Documentation": "https://github.com/kubilitics/upid-cli#readme",
+        "Bug Reports": f"{product.repository}/issues",
+        "Source": product.repository,
+        "Documentation": product.documentation,
+        "Homepage": product.homepage,
     },
     packages=find_packages(),
     classifiers=[
@@ -61,5 +80,5 @@ setup(
     zip_safe=False,
     keywords="kubernetes,cli,optimization,resource-management,cluster-management",
     platforms=["any"],
-    license="MIT",
+    license=product.license,
 ) 

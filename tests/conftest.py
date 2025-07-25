@@ -6,9 +6,9 @@ import tempfile
 import os
 from unittest.mock import Mock, patch
 from pathlib import Path
-from upid.core.config import Config
-from upid.core.auth import AuthManager
-from upid.core.api_client import UPIDAPIClient
+from upid_python.core.config import Config
+from upid_python.core.auth import AuthManager
+from upid_python.core.api_client import UPIDAPIClient
 
 @pytest.fixture
 def temp_config_dir():
@@ -248,8 +248,8 @@ def mock_report_data():
 @pytest.fixture(autouse=True)
 def mock_rich_console():
     """Mock rich console to avoid output during tests"""
-    with patch('upid.core.utils.console') as mock_console:
-        yield mock_console
+    # Temporarily disabled due to missing utils module
+    yield Mock()
 
 @pytest.fixture(autouse=True)
 def mock_click_echo():

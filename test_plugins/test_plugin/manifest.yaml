@@ -1,0 +1,16 @@
+author: Test Author
+config_schema:
+  api_key:
+    required: true
+    type: string
+  endpoint:
+    default: https://api.example.com
+    type: string
+dependencies:
+- requests
+description: A test plugin
+enabled: true
+entry_point: main.py
+name: test_plugin
+type: custom
+version: 1.0.0

@@ -11,15 +11,15 @@ from typing import Dict, List, Any
 from unittest.mock import Mock, AsyncMock, patch, MagicMock
 import json
 
-from upid.core.ml_enhancement import (
+from upid_python.core.ml_enhancement import (
     MLEnhancementEngine, MLModelType, MLPrediction, AnomalyDetection,
     OptimizationRecommendation, PredictionConfidence, BaseMLModel,
     ResourcePredictionModel, AnomalyDetectionModel, SecurityThreatModel,
     OptimizationModel
 )
-from upid.auth.enterprise_auth import EnterpriseAuthManager, AuthSession, UserPrincipal
-from upid.core.auth_analytics_integration import AuthAnalyticsIntegration
-from upid.core.realtime_monitoring import RealTimeMonitor
+from upid_python.auth.enterprise_auth import EnterpriseAuthManager, AuthSession, UserPrincipal
+from upid_python.core.auth_analytics_integration import AuthAnalyticsIntegration
+from upid_python.core.realtime_monitoring import RealTimeMonitor
 
 logger = logging.getLogger(__name__)
 
@@ -352,27 +352,23 @@ class TestMLEnhancementEngine:
         assert engine.auth_manager == mock_auth_manager
         assert engine.auth_analytics == mock_auth_analytics
         assert engine.monitor == mock_monitor
-        assert len(engine.models) == 3
-        assert MLModelType.RESOURCE_PREDICTION in engine.models
-        assert MLModelType.ANOMALY_DETECTION in engine.models
-        assert MLModelType.COST_OPTIMIZATION in engine.models
-        assert len(engine.processing_queue) == 0
-        assert not engine.ml_active
+        assert len(engine.models) == 0  # Models are loaded during initialize()
+        assert not engine.is_processing
+        assert engine.processing_thread is None
     
     @pytest.mark.asyncio
     async def test_load_all_models(self, mock_auth_manager, mock_auth_analytics, mock_monitor):
         """Test loading all ML models"""
         engine = MLEnhancementEngine(mock_auth_manager, mock_auth_analytics, mock_monitor)
         
-        # Mock the load_model method for all models
-        for model in engine.models.values():
-            model.load_model = AsyncMock(return_value=True)
-        
         await engine._load_all_models()
         
-        # Verify all models were loaded
-        for model in engine.models.values():
-            model.load_model.assert_called_once()
+        # Verify models were loaded
+        assert len(engine.models) == 4  # 4 model types
+        assert MLModelType.RESOURCE_PREDICTION in engine.models
+        assert MLModelType.ANOMALY_DETECTION in engine.models
+        assert MLModelType.SECURITY_THREAT in engine.models
+        assert MLModelType.OPTIMIZATION in engine.models
     
     @pytest.mark.asyncio
     async def test_ml_processing_start_stop(self, mock_auth_manager, mock_auth_analytics, mock_monitor):
