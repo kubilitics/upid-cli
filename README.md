@@ -6,7 +6,7 @@
 
 **🚀 PRODUCTION READY - ENTERPRISE KUBERNETES COST OPTIMIZATION**
 
-[![Version](https://img.shields.io/badge/version-2.0.0-green.svg)](https://github.com/your-org/upid-cli/releases)
+[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/your-org/upid-cli/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/your-org/upid-cli/releases)
 
@@ -18,9 +18,9 @@
 
 ---
 
-## 🎉 **PRODUCTION READY - v2.0.0**
+## 🎉 **PRODUCTION READY - v1.0.0**
 
-**UPID CLI v2.0.0 is now production-ready** with complete end-to-end functionality, enterprise security, and professional deployment capabilities.
+**UPID CLI v1.0.0 is now production-ready** with complete end-to-end functionality, enterprise security, and professional deployment capabilities.
 
 **✅ FULLY FUNCTIONAL:**
 - 🏗️ Complete CLI interface with comprehensive commands
@@ -823,15 +823,33 @@ for binary in upid-*; do
 done
 ```
 
-### **Release Management Commands**
+### **Automated Release with GitHub Actions**
+
+**UPID CLI now uses GitHub Actions for automated releases!** Just push a tag and binaries are built automatically.
 
 ```bash
-# Prepare release
+# Automated release (recommended)
+git checkout main
+git pull origin main
+git tag -a v1.1.0 -m "Release v1.1.0: Custom features and improvements"
+git push origin v1.1.0
+
+# GitHub Actions will automatically:
+# 1. Build all platform binaries (Linux, macOS, Windows)
+# 2. Create kubectl-style packages that extract to current directory
+# 3. Generate checksums and release notes
+# 4. Create GitHub release with all assets
+```
+
+### **Manual Release Commands (if needed)**
+
+```bash
+# Manual release (alternative method)
 git checkout main
 git pull origin main
 git tag -a v1.1.0 -m "Release v1.1.0: Custom features and improvements"
 
-# Build release
+# Build release locally
 ./build_go_binary.sh
 
 # Create GitHub release (if using GitHub CLI)

@@ -51,7 +51,7 @@ build_for_platform() {
     fi
 }
 
-# Function to create tar.gz package
+# Function to create tar.gz package (kubectl-style: extracts to current dir)
 create_package() {
     local GOOS=$1
     local GOARCH=$2
@@ -62,37 +62,72 @@ create_package() {
     
     echo -e "${YELLOW}Creating package for ${GOOS}/${GOARCH}...${NC}"
     
-    # Create package directory
-    mkdir -p "$BUILD_DIR/$PACKAGE_NAME"
+    # Create temporary directory for packaging
+    local TEMP_DIR=$(mktemp -d)
     
-    # Copy binary
-    cp "$BUILD_DIR/$BINARY_NAME" "$BUILD_DIR/$PACKAGE_NAME/upid"
-    chmod +x "$BUILD_DIR/$PACKAGE_NAME/upid"
+    # Copy binary (rename to just 'upid' for extraction)
+    cp "$BUILD_DIR/$BINARY_NAME" "$TEMP_DIR/upid"
+    chmod +x "$TEMP_DIR/upid"
     
-    # Copy documentation and install scripts
+    # Copy documentation and install scripts (extract to current dir)
     if [ -f "install/install.sh" ]; then
-        cp "install/install.sh" "$BUILD_DIR/$PACKAGE_NAME/"
-        chmod +x "$BUILD_DIR/$PACKAGE_NAME/install.sh"
+        cp "install/install.sh" "$TEMP_DIR/"
+        chmod +x "$TEMP_DIR/install.sh"
     fi
     
-    if [ -f "docs/guides/UPID_USER_MANUAL.md" ]; then
-        cp "docs/guides/UPID_USER_MANUAL.md" "$BUILD_DIR/$PACKAGE_NAME/"
+    # Copy key documentation files
+    if [ -f "README.md" ]; then
+        cp "README.md" "$TEMP_DIR/README.md"
     fi
     
-    if [ -f "docs/guides/UPID_QUICK_REFERENCE.md" ]; then
-        cp "docs/guides/UPID_QUICK_REFERENCE.md" "$BUILD_DIR/$PACKAGE_NAME/"
+    if [ -f "docs/USER_MANUAL.md" ]; then
+        cp "docs/USER_MANUAL.md" "$TEMP_DIR/USER_MANUAL.md"
     fi
     
-    if [ -f "docs/guides/UPID_INSTALLATION_GUIDE.md" ]; then
-        cp "docs/guides/UPID_INSTALLATION_GUIDE.md" "$BUILD_DIR/$PACKAGE_NAME/"
+    if [ -f "docs/COMMAND_REFERENCE.md" ]; then
+        cp "docs/COMMAND_REFERENCE.md" "$TEMP_DIR/COMMAND_REFERENCE.md"
     fi
     
-    # Create tar.gz
-    cd "$BUILD_DIR"
-    tar -czf "${PACKAGE_NAME}.tar.gz" "$PACKAGE_NAME"
-    cd ..
+    if [ -f "docs/API_REFERENCE.md" ]; then
+        cp "docs/API_REFERENCE.md" "$TEMP_DIR/API_REFERENCE.md"
+    fi
+    
+    # Create tar.gz that extracts files to current directory (no subdirectory)
+    local ORIGINAL_DIR=$(pwd)
+    cd "$TEMP_DIR"
+    tar -czf "${ORIGINAL_DIR}/${BUILD_DIR}/${PACKAGE_NAME}.tar.gz" *
+    cd "$ORIGINAL_DIR"
+    
+    # Clean up temp directory
+    rm -rf "$TEMP_DIR"
     
     echo -e "${GREEN}✅ Package created: ${PACKAGE_NAME}.tar.gz${NC}"
+}
+
+# Function to create simple binary-only package (like kubectl)
+create_simple_package() {
+    local GOOS=$1
+    local GOARCH=$2
+    local SUFFIX=$3
+    
+    local BINARY_NAME="upid-$GOOS-$GOARCH$SUFFIX"
+    local SIMPLE_PACKAGE_NAME="upid-$GOOS-$GOARCH"
+    
+    echo -e "${YELLOW}Creating simple package for ${GOOS}/${GOARCH}...${NC}"
+    
+    if [ "$GOOS" = "windows" ]; then
+        # For Windows, create zip file
+        cd "$BUILD_DIR"
+        zip -q "${SIMPLE_PACKAGE_NAME}.zip" "$BINARY_NAME"
+        cd - > /dev/null
+        echo -e "${GREEN}✅ Simple package created: ${SIMPLE_PACKAGE_NAME}.zip${NC}"
+    else
+        # For Unix systems, create tar.gz with just the binary
+        cd "$BUILD_DIR"
+        tar -czf "${SIMPLE_PACKAGE_NAME}.tar.gz" "$BINARY_NAME"
+        cd - > /dev/null
+        echo -e "${GREEN}✅ Simple package created: ${SIMPLE_PACKAGE_NAME}.tar.gz${NC}"
+    fi
 }
 
 # Clean previous builds
