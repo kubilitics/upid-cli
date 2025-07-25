@@ -72,20 +72,23 @@ binary: build-binary install-binary
 	@echo "Binary build and installation completed!"
 
 build-binary:
-	python build_binary.py
+	@echo "Building UPID CLI Go binaries..."
+	@./build_go_binary.sh
 
 install-binary:
 	@echo "Installing UPID CLI binary..."
-	@if [ -f "install.sh" ]; then \
-		chmod +x install.sh && ./install.sh; \
+	@if [ -f "dist/upid-$(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m)" ]; then \
+		sudo cp "dist/upid-$(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m)" /usr/local/bin/upid; \
+		echo "✅ UPID CLI installed to /usr/local/bin/upid"; \
+	elif [ -f "dist/upid-$(shell uname -s | tr '[:upper:]' '[:lower:]')-$(shell uname -m).exe" ]; then \
+		echo "Windows binary found. Please install manually."; \
 	else \
 		echo "Binary not found. Run 'make build-binary' first."; \
 	fi
 
 release-binary: build-binary
 	@echo "Creating release packages..."
-	@python build_binary.py
-	@echo "Release packages created in 'release' directory"
+	@echo "✅ Release packages created in 'dist' directory"
 
 # Code Quality
 lint:
