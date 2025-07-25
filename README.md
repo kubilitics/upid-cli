@@ -56,29 +56,97 @@ UPID CLI solves this with **5-layer intelligent filtering**:
 
 ### Installation
 
-#### Option 1: Download Binary (Recommended)
+#### Quick Installation (kubectl-style)
+
+**Auto-detect platform and install:**
 ```bash
-# macOS ARM64 (Apple Silicon)
-curl -L https://github.com/your-org/upid-cli/releases/latest/download/upid-2.0.0-darwin-arm64.tar.gz | tar -xz
-sudo mv upid-2.0.0-darwin-arm64/upid /usr/local/bin/
+# Automatic installation (detects your platform)
+curl -LO "https://github.com/your-org/upid-cli/releases/latest/download/upid-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m).tar.gz"
+tar -xzf upid-*.tar.gz
+sudo install -o root -g root -m 0755 upid /usr/local/bin/upid
+rm upid-*.tar.gz upid
 upid --version
-
-# Linux x86_64
-curl -L https://github.com/your-org/upid-cli/releases/latest/download/upid-2.0.0-linux-amd64.tar.gz | tar -xz
-sudo mv upid-2.0.0-linux-amd64/upid /usr/local/bin/
-upid --version
-
-# Windows x86_64
-# Download upid-2.0.0-windows-amd64.zip
-# Extract and add to PATH
 ```
 
-#### Option 2: Install from Source
+**Manual platform selection:**
+```bash
+# macOS ARM64 (Apple Silicon)
+curl -LO "https://github.com/your-org/upid-cli/releases/latest/download/upid-darwin-arm64.tar.gz"
+tar -xzf upid-darwin-arm64.tar.gz
+sudo install -o root -g root -m 0755 upid /usr/local/bin/upid
+rm upid-darwin-arm64.tar.gz upid
+
+# macOS Intel
+curl -LO "https://github.com/your-org/upid-cli/releases/latest/download/upid-darwin-amd64.tar.gz"
+tar -xzf upid-darwin-amd64.tar.gz
+sudo install -o root -g root -m 0755 upid /usr/local/bin/upid
+rm upid-darwin-amd64.tar.gz upid
+
+# Linux x86_64
+curl -LO "https://github.com/your-org/upid-cli/releases/latest/download/upid-linux-amd64.tar.gz"
+tar -xzf upid-linux-amd64.tar.gz
+sudo install -o root -g root -m 0755 upid /usr/local/bin/upid
+rm upid-linux-amd64.tar.gz upid
+
+# Linux ARM64
+curl -LO "https://github.com/your-org/upid-cli/releases/latest/download/upid-linux-arm64.tar.gz"
+tar -xzf upid-linux-arm64.tar.gz
+sudo install -o root -g root -m 0755 upid /usr/local/bin/upid
+rm upid-linux-arm64.tar.gz upid
+
+# Windows x86_64 (PowerShell)
+curl.exe -LO "https://github.com/your-org/upid-cli/releases/latest/download/upid-windows-amd64.zip"
+Expand-Archive upid-windows-amd64.zip -DestinationPath .
+Move-Item upid.exe C:\Windows\System32\upid.exe
+Remove-Item upid-windows-amd64.zip, upid-windows-amd64 -Recurse
+
+# Windows ARM64 (PowerShell)
+curl.exe -LO "https://github.com/your-org/upid-cli/releases/latest/download/upid-windows-arm64.zip"
+Expand-Archive upid-windows-arm64.zip -DestinationPath .
+Move-Item upid.exe C:\Windows\System32\upid.exe
+Remove-Item upid-windows-arm64.zip, upid-windows-arm64 -Recurse
+```
+
+#### Package Manager Installation
+
+**macOS (Homebrew):**
+```bash
+brew install upid-cli
+```
+
+**Linux (Snap):**
+```bash
+sudo snap install upid-cli --classic
+```
+
+**Windows (Chocolatey):**
+```powershell
+choco install upid-cli
+```
+
+**Windows (Scoop):**
+```powershell
+scoop install upid-cli
+```
+
+#### Install from Source
 ```bash
 git clone https://github.com/your-org/upid-cli.git
 cd upid-cli
 ./build_go_binary.sh
-sudo cp dist/upid-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m) /usr/local/bin/upid
+sudo install -o root -g root -m 0755 dist/upid-$(uname -s | tr '[:upper:]' '[:lower:]')-$(uname -m) /usr/local/bin/upid
+```
+
+#### Verify Installation
+```bash
+upid --version
+# Expected output: upid version UPID CLI 1.0.0 (commit: abc1234, date: 2025-07-25T17:00:00Z)
+
+which upid
+# Expected output: /usr/local/bin/upid
+
+upid --help
+# Should display comprehensive help information
 ```
 
 ### 30-Second Demo
@@ -443,32 +511,76 @@ upid cloud azure optimize --cluster production-aks
 ## 🏗️ **Architecture Overview**
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   UPID CLI      │    │   Kubernetes    │    │   Cloud APIs    │
-│   (Go Binary)   │    │   Cluster       │    │   (Multi-Cloud) │
-│                 │    │                 │    │                 │
-│  ┌───────────┐  │    │  ┌───────────┐  │    │  ┌───────────┐  │
-│  │ Commands  │  │◄──►│  │  Metrics  │  │    │  │  Billing  │  │
-│  │  Router   │  │    │  │ Collector │  │    │  │   APIs    │  │
-│  └───────────┘  │    │  └───────────┘  │    │  └───────────┘  │
-│         │       │    │                 │    │                 │
-│         ▼       │    │  ┌───────────┐  │    │  ┌───────────┐  │
-│  ┌───────────┐  │    │  │ Resources │  │    │  │  Cost     │  │
-│  │  Python   │  │◄──►│  │   APIs    │  │◄──►│  │Management │  │
-│  │  Runtime  │  │    │  └───────────┘  │    │  └───────────┘  │
-│  └───────────┘  │    │                 │    │                 │
-│         │       │    │  ┌───────────┐  │    │  ┌───────────┐  │
-│         ▼       │    │  │Prometheus │  │    │  │Enterprise │  │
-│  ┌───────────┐  │    │  │  Metrics  │  │    │  │   Auth    │  │
-│  │API Server │  │    │  └───────────┘  │    │  └───────────┘  │
-│  └───────────┘  │    └─────────────────┘    └─────────────────┘
-└─────────────────┘
-         │
-         ▼
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   SQLite DB     │    │   ML Pipeline   │    │  Executive      │
-│   (Local)       │    │   (Analytics)   │    │  Dashboard      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
+                    UPID CLI - Enterprise Kubernetes Cost Optimization
+                              
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              USER INTERFACE LAYER                           │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐ │
+│  │   CLI Tool    │  │   Dashboard   │  │  REST API     │  │   Web UI      │ │
+│  │   (Go)        │  │   (Terminal)  │  │   Client      │  │   (Future)    │ │
+│  └───────────────┘  └───────────────┘  └───────────────┘  └───────────────┘ │
+└──────────────────────────┬──────────────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────────────────┐
+│                          GO CLI LAYER (Entry Point)                         │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐ │
+│  │   Commands    │  │ Configuration │  │ Authentication│  │   Validation  │ │
+│  │   Parser      │  │   Manager     │  │    Handler    │  │   & Safety    │ │
+│  │  (Cobra)      │  │   (Viper)     │  │  (JWT/OAuth)  │  │   Checks      │ │
+│  └───────────────┘  └───────────────┘  └───────────────┘  └───────────────┘ │
+└──────────────────────────┬──────────────────────────────────────────────────┘
+                           │ Python Bridge (Subprocess calls)
+┌──────────────────────────▼──────────────────────────────────────────────────┐
+│                       PYTHON RUNTIME LAYER                                  │
+├─────────────────────────────────────────────────────────────────────────────┤
+│  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐  ┌───────────────┐ │
+│  │   Runtime     │  │   Command     │  │  Embedded     │  │    Site       │ │
+│  │  Bootstrap    │  │   Router      │  │  Dependencies │  │  Packages     │ │
+│  │   (upid_      │  │  (CLI Logic)  │  │  (131.3 MB)   │  │ (7,641 files) │ │
+│  │  runtime.py)  │  │               │  │               │  │               │ │
+│  └───────────────┘  └───────────────┘  └───────────────┘  └───────────────┘ │
+└──────────────────────────┬──────────────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────────────────┐
+│                        BUSINESS LOGIC LAYER                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐ │
+│ │   Analysis      │ │  Optimization   │ │    Reporting    │ │   AI/ML     │ │
+│ │   Engine        │ │    Engine       │ │    Engine       │ │  Pipeline   │ │
+│ │                 │ │                 │ │                 │ │             │ │
+│ │• Idle Detection │ │• Zero-pod Scale │ │• Executive      │ │• Prediction │ │
+│ │• Resource       │ │• Right-sizing   │ │• Technical      │ │• Anomaly    │ │
+│ │  Analysis       │ │• Cost Optimize  │ │• Cost Trends    │ │  Detection  │ │
+│ │• Health Check   │ │• Safety Mgmt    │ │• ROI Analysis   │ │• Model Mgmt │ │
+│ │  Filtering      │ │• Rollback Plans │ │• Multi-format   │ │• Training   │ │
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘ │
+└──────────────────────────┬──────────────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────────────────────┐
+│                         DATA & INTEGRATION LAYER                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────────┐ ┌─────────────┐ │
+│ │   Kubernetes    │ │   Cloud APIs    │ │    Database     │ │  API Server │ │
+│ │   Native API    │ │   Integration   │ │  (SQLite/PG)    │ │  (HTTP)     │ │
+│ │                 │ │                 │ │                 │ │             │ │
+│ │• kubectl calls  │ │• AWS Cost API   │ │• Metrics Store  │ │• REST API   │ │
+│ │• Metrics API    │ │• GCP Billing    │ │• Config Store   │ │• Auth Endpts│ │
+│ │• Resource API   │ │• Azure Cost     │ │• Audit Logs     │ │• Analysis   │ │
+│ │• Events API     │ │• Cost Explorer  │ │• User Data      │ │• Optimize   │ │
+│ │• Multi-cluster  │ │• Reserved Inst  │ │• Report Cache   │ │• Reports    │ │
+│ └─────────────────┘ └─────────────────┘ └─────────────────┘ └─────────────┘ │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+KEY ARCHITECTURAL PRINCIPLES:
+• Go CLI provides fast, native binary with excellent UX
+• Python runtime handles complex ML/analysis logic with rich ecosystem
+• Embedded dependencies ensure zero external requirements
+• SQLite provides local persistence with PostgreSQL production option  
+• API server enables enterprise integration and automation
+• Multi-cloud integration provides comprehensive cost visibility
+• Safety-first design with automated rollback capabilities
 ```
 
 ## 🛠️ **Advanced Configuration**
@@ -586,6 +698,177 @@ upid report technical default --time-range 1h
 - **Multi-Cluster**: Supports unlimited clusters
 - **Concurrent Users**: 100+ simultaneous API users
 - **Data Retention**: 1 year of historical metrics
+
+## 🗑️ **Uninstallation**
+
+### **Remove UPID CLI**
+
+```bash
+# Remove binary
+sudo rm -f /usr/local/bin/upid
+
+# Remove configuration and data
+rm -rf ~/.upid
+
+# Remove logs
+rm -rf ~/.upid/logs
+
+# Verify removal
+which upid
+# Should return: upid not found
+```
+
+### **Package Manager Uninstallation**
+
+```bash
+# macOS (Homebrew)
+brew uninstall upid-cli
+
+# Linux (Snap)
+sudo snap remove upid-cli
+
+# Windows (Chocolatey)
+choco uninstall upid-cli
+
+# Windows (Scoop)
+scoop uninstall upid-cli
+```
+
+### **Complete Cleanup**
+
+```bash
+# Remove all UPID-related files and configurations
+sudo rm -f /usr/local/bin/upid
+rm -rf ~/.upid
+rm -rf ~/.config/upid
+rm -rf ~/Library/Application\ Support/upid  # macOS only
+rm -rf ~/.cache/upid
+
+# Remove from PATH (if manually added)
+# Edit ~/.bashrc, ~/.zshrc, or ~/.profile and remove UPID-related entries
+
+# Clear shell cache
+hash -r
+```
+
+### **Rollback Kubernetes Changes**
+
+```bash
+# If you want to rollback optimizations made by UPID
+upid optimize rollback --all --confirm
+
+# Or manual rollback of specific workloads
+kubectl scale deployment <workload-name> --replicas=<original-count>
+
+# Restore original resource requests/limits
+kubectl patch deployment <workload-name> -p '{"spec":{"template":{"spec":{"containers":[{"name":"<container>","resources":{"requests":{"cpu":"<original-cpu>","memory":"<original-memory>"}}}]}}}}'
+```
+
+---
+
+## 🛠️ **Development & Customization**
+
+### **Git Tag Management for Custom Releases**
+
+If you want to create custom versions or releases:
+
+```bash
+# List all tags
+git tag -l
+
+# Create a new release tag
+git tag -a v1.1.0 -m "Custom release v1.1.0 with additional features"
+
+# Push tag to remote
+git push origin v1.1.0
+
+# Delete a tag locally
+git tag -d v1.0.0
+
+# Delete a tag from remote
+git push origin --delete v1.0.0
+
+# Create a release from specific commit
+git tag -a v1.2.0 <commit-hash> -m "Release v1.2.0 from specific commit"
+
+# View tag details
+git show v1.0.0
+
+# Checkout specific version
+git checkout v1.0.0
+
+# Create branch from tag
+git checkout -b hotfix-v1.0.1 v1.0.0
+```
+
+### **Custom Build Process**
+
+```bash
+# Build for all platforms
+./build_go_binary.sh
+
+# Build for specific platform
+GOOS=linux GOARCH=amd64 go build -o dist/upid-linux-amd64 ./cmd/upid
+
+# Build with custom version
+VERSION=1.1.0-custom ./build_go_binary.sh
+
+# Create custom release packages
+cd dist/
+for binary in upid-*; do
+    if [[ -f "$binary" && ! "$binary" == *.tar.gz ]]; then
+        platform=${binary#upid-}
+        tar -czf "upid-1.1.0-custom-${platform}.tar.gz" "$binary"
+    fi
+done
+```
+
+### **Release Management Commands**
+
+```bash
+# Prepare release
+git checkout main
+git pull origin main
+git tag -a v1.1.0 -m "Release v1.1.0: Custom features and improvements"
+
+# Build release
+./build_go_binary.sh
+
+# Create GitHub release (if using GitHub CLI)
+gh release create v1.1.0 dist/*.tar.gz --title "UPID CLI v1.1.0" --notes "Release notes here"
+
+# Or create release manually
+# 1. Push tag: git push origin v1.1.0
+# 2. Go to GitHub releases page
+# 3. Create new release from tag
+# 4. Upload dist/*.tar.gz files
+```
+
+### **Version Update Process**
+
+```bash
+# 1. Update version in configuration
+echo 'version = "1.1.0"' > VERSION
+
+# 2. Update upid_config.py
+sed -i 's/version=".*"/version="1.1.0"/' upid_config.py
+
+# 3. Update internal/config/product.go
+sed -i 's/Version.*=.*".*"/Version = "1.1.0"/' internal/config/product.go
+
+# 4. Commit version changes
+git add VERSION upid_config.py internal/config/product.go
+git commit -m "Bump version to 1.1.0"
+
+# 5. Create and push tag
+git tag -a v1.1.0 -m "Release v1.1.0"
+git push origin main v1.1.0
+
+# 6. Build and release
+./build_go_binary.sh
+```
+
+---
 
 ## 🤝 **Contributing**
 

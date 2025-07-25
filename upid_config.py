@@ -22,9 +22,9 @@ class ProductInfo:
     """Product information and metadata"""
     name: str = "UPID CLI"
     description: str = "Universal Prometheus Infrastructure Discovery - Kubernetes Cost Optimization CLI"
-    version: str = "2.0.0"
-    build_version: str = "2.0.0-production"
-    api_version: str = "v2"
+    version: str = "1.0.0"
+    build_version: str = "1.0.0-production"
+    api_version: str = "v1"
     author: str = "UPID Development Team"
     author_email: str = "dev@upid.io"
     maintainer: str = "UPID Team"
@@ -43,7 +43,7 @@ class ProductInfo:
 class APIConfig:
     """API configuration settings"""
     base_url: str = "http://localhost:8000"
-    api_prefix: str = "/api/v2"
+    api_prefix: str = "/api/v1"
     timeout_seconds: int = 30
     max_retries: int = 3
     retry_delay_seconds: float = 1.0
