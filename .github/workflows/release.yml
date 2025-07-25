@@ -99,7 +99,7 @@ jobs:
     - name: Build Windows binary
       run: |
         pyinstaller --onefile --clean --noconfirm --exclude-module=tkinter --exclude-module=unittest --exclude-module=pydoc --name upid-windows-x86_64 upid/cli.py
-        Compress-Archive -Path "dist/upid-windows-x86_64.exe", "install/install.ps1", "docs/guides/UPID_USER_MANUAL.md", "docs/guides/UPID_QUICK_REFERENCE.md", "docs/guides/UPID_INSTALLATION_GUIDE.md" -DestinationPath "upid-windows-x86_64.zip"
+        zip upid-windows-x86_64.zip dist/upid-windows-x86_64.exe install/install.ps1 docs/guides/UPID_USER_MANUAL.md docs/guides/UPID_QUICK_REFERENCE.md docs/guides/UPID_INSTALLATION_GUIDE.md
       shell: bash
         
     - name: Upload Windows binary
