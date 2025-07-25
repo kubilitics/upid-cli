@@ -10,7 +10,7 @@ import json
 import logging
 from pathlib import Path
 from typing import Dict, Any, Optional
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
 from datetime import datetime
 
 
@@ -19,465 +19,748 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class ProductInfo:
-    """Product information and metadata"""
+    """Product information and configuration"""
     name: str = "UPID CLI"
     description: str = "Universal Prometheus Infrastructure Discovery - Kubernetes Cost Optimization CLI"
-    version: str = "1.0.1"
-    build_version: str = "1.0.1-production"
+    version: str = "1.0.0"
+    build_version: str = "1.0.0-production"
     api_version: str = "v1"
     author: str = "UPID Development Team"
-    author_email: str = "dev@upid.io"
-    maintainer: str = "UPID Team"
-    maintainer_email: str = "support@upid.io"
-    license: str = "MIT"
-    homepage: str = "https://upid.io"
-    repository: str = "https://github.com/upid/upid-cli"
-    documentation: str = "https://docs.upid.io"
+    repository: str = "https://github.com/kubilitics/upid-cli"
+    documentation: str = "https://github.com/kubilitics/upid-cli/docs"
     support_email: str = "support@upid.io"
-    sales_email: str = "sales@upid.io"
-    copyright_year: str = "2025"
-    copyright_notice: str = "© 2025 UPID Development Team. All rights reserved."
-
-
-@dataclass
-class APIConfig:
-    """API configuration settings"""
-    base_url: str = "http://localhost:8000"
-    api_prefix: str = "/api/v1"
-    timeout_seconds: int = 30
-    max_retries: int = 3
-    retry_delay_seconds: float = 1.0
-    jwt_algorithm: str = "HS256"
+    license: str = "MIT"
+    copyright: str = "© 2025 UPID Development Team"
+    
+    # Build information
+    build_date: Optional[str] = None
+    build_commit: Optional[str] = None
+    build_platform: Optional[str] = None
+    
+    # Feature flags
+    enable_ml: bool = True
+    enable_enterprise: bool = True
+    enable_multi_cloud: bool = True
+    enable_security: bool = True
+    enable_analytics: bool = True
+    enable_optimization: bool = True
+    enable_reporting: bool = True
+    enable_dashboard: bool = True
+    enable_api: bool = True
+    enable_plugin_system: bool = True
+    
+    # Configuration paths
+    config_dir: str = "~/.upid"
+    data_dir: str = "~/.upid/data"
+    log_dir: str = "~/.upid/logs"
+    cache_dir: str = "~/.upid/cache"
+    plugin_dir: str = "~/.upid/plugins"
+    
+    # Default settings
+    default_namespace: str = "default"
+    default_time_range: str = "24h"
+    default_output_format: str = "table"
+    default_safety_threshold: float = 0.85
+    default_dry_run: bool = True
+    
+    # API settings
+    api_host: str = "localhost"
+    api_port: int = 8000
+    api_timeout: int = 30
+    api_max_workers: int = 4
+    
+    # Database settings
+    db_url: str = "sqlite:///~/.upid/data/upid.db"
+    db_pool_size: int = 10
+    db_max_overflow: int = 20
+    
+    # Security settings
+    jwt_secret: str = "your-secret-key-change-in-production"
     jwt_expiry_hours: int = 24
-    refresh_token_expiry_days: int = 30
-
-
-@dataclass
-class DatabaseConfig:
-    """Database configuration settings"""
-    default_url: str = "sqlite:///upid.db"
-    pool_size: int = 10
-    max_overflow: int = 20
-    pool_timeout: int = 30
-    pool_recycle: int = 3600
-    echo: bool = False
-    echo_pool: bool = False
-
-
-@dataclass
-class KubernetesConfig:
-    """Kubernetes client configuration"""
-    config_file: str = "~/.kube/config"
-    context: Optional[str] = None
-    namespace: str = "default"
-    timeout_seconds: int = 60
-    request_timeout: int = 30
-    verify_ssl: bool = True
-    debug: bool = False
-
-
-@dataclass
-class LoggingConfig:
-    """Logging configuration settings"""
-    level: str = "INFO"
-    format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
-    date_format: str = "%Y-%m-%d %H:%M:%S"
-    file_enabled: bool = True
-    file_path: str = "upid.log"
-    file_max_bytes: int = 10485760  # 10MB
-    file_backup_count: int = 5
-    console_enabled: bool = True
-
-
-@dataclass
-class SecurityConfig:
-    """Security configuration settings"""
-    secret_key: str = "upid-secret-key-change-in-production"
-    password_min_length: int = 8
-    password_require_uppercase: bool = True
-    password_require_lowercase: bool = True
-    password_require_numbers: bool = True
-    password_require_special: bool = True
-    session_timeout_minutes: int = 60
-    max_failed_login_attempts: int = 5
-    lockout_duration_minutes: int = 15
-
-
-@dataclass
-class MockDataConfig:
-    """Mock data configuration settings"""
-    enabled: bool = False
-    scenario: str = "production"
-    seed: int = 42
-    cache_enabled: bool = True
-    cache_ttl_minutes: int = 15
-
-
-@dataclass
-class UIConfig:
-    """User interface configuration"""
-    theme: str = "auto"  # auto, light, dark
-    color_enabled: bool = True
-    progress_bars: bool = True
-    table_format: str = "table"  # table, json, yaml, csv
-    max_table_rows: int = 100
-    show_timestamps: bool = True
-    timezone: str = "UTC"
-
-
-@dataclass
-class FeatureFlags:
-    """Feature flags for enabling/disabling functionality"""
-    ai_optimization: bool = True
-    cost_analysis: bool = True
-    idle_detection: bool = True
+    mfa_enabled: bool = True
+    sso_enabled: bool = True
+    
+    # Cloud provider settings
+    aws_region: str = "us-west-2"
+    gcp_project: str = ""
+    azure_subscription: str = ""
+    
+    # Optimization settings
+    optimization_enabled: bool = True
+    zero_pod_scaling: bool = True
+    resource_rightsizing: bool = True
+    cost_optimization: bool = True
+    safety_checks: bool = True
+    
+    # Analytics settings
+    analytics_enabled: bool = True
+    ml_enabled: bool = True
+    prediction_horizon_days: int = 7
     anomaly_detection: bool = True
-    auto_scaling: bool = True
-    multi_cluster: bool = True
-    cloud_billing: bool = True
-    dashboard: bool = True
-    telemetry: bool = False
-    plugins: bool = False
+    
+    # Reporting settings
+    reporting_enabled: bool = True
+    executive_reports: bool = True
+    technical_reports: bool = True
+    cost_reports: bool = True
+    performance_reports: bool = True
+    
+    # Monitoring settings
+    monitoring_enabled: bool = True
+    real_time_monitoring: bool = True
+    alerting_enabled: bool = True
+    metrics_retention_days: int = 365
+    
+    # Plugin system settings
+    plugin_system_enabled: bool = True
+    plugin_auto_load: bool = True
+    plugin_validation: bool = True
+    
+    # Logging settings
+    log_level: str = "INFO"
+    log_format: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    log_rotation: bool = True
+    log_max_size_mb: int = 100
+    log_backup_count: int = 5
+    
+    # Performance settings
+    max_concurrent_requests: int = 10
+    request_timeout_seconds: int = 30
+    cache_enabled: bool = True
+    cache_ttl_seconds: int = 300
+    
+    # Development settings
+    debug_mode: bool = False
+    development_mode: bool = False
+    test_mode: bool = False
+    mock_data_enabled: bool = False
+    
+    # Enterprise settings
+    enterprise_enabled: bool = True
+    multi_tenant: bool = True
+    audit_logging: bool = True
+    compliance_mode: bool = True
+    
+    # CI/CD settings
+    ci_cd_enabled: bool = True
+    automated_testing: bool = True
+    deployment_validation: bool = True
+    gitops_integration: bool = True
 
-
-@dataclass
-class UPIDConfig:
-    """Master UPID configuration containing all settings"""
-    product: ProductInfo
-    api: APIConfig
-    database: DatabaseConfig
-    kubernetes: KubernetesConfig
-    logging: LoggingConfig
-    security: SecurityConfig
-    mock_data: MockDataConfig
-    ui: UIConfig
-    features: FeatureFlags
-    
-    @property
-    def version(self) -> str:
-        """Get product version"""
-        return self.product.version
-    
-    @property
-    def author(self) -> str:
-        """Get product author"""
-        return self.product.author
-    
-    @property
-    def author_email(self) -> str:
-        """Get author email"""
-        return self.product.author_email
-    
-    @property
-    def full_version(self) -> str:
-        """Get full version string"""
-        return f"{self.product.name} v{self.product.version}"
-    
-    @property
-    def api_base_url(self) -> str:
-        """Get complete API base URL"""
-        return f"{self.api.base_url}{self.api.api_prefix}"
-    
-    def to_dict(self) -> Dict[str, Any]:
-        """Convert configuration to dictionary"""
-        return asdict(self)
-    
-    def to_json(self) -> str:
-        """Convert configuration to JSON string"""
-        return json.dumps(self.to_dict(), indent=2, default=str)
-
-
-class ConfigurationManager:
-    """Centralized configuration manager for UPID CLI"""
-    
-    def __init__(self, config_file: Optional[str] = None):
-        """Initialize configuration manager"""
-        self._config: Optional[UPIDConfig] = None
-        self._config_file = config_file or self._get_default_config_file()
-        self._env_prefix = "UPID_"
-        self.logger = logging.getLogger(__name__)
-    
-    def _get_default_config_file(self) -> str:
-        """Get default configuration file path"""
-        # Try multiple locations in order of preference
-        config_locations = [
-            os.environ.get("UPID_CONFIG_FILE"),
-            os.path.expanduser("~/.upid/config.json"),
-            "/etc/upid/config.json",
-            "./upid_config.json"
-        ]
-        
-        for location in config_locations:
-            if location and Path(location).exists():
-                return location
-        
-        # Return the user config location as default
-        return os.path.expanduser("~/.upid/config.json")
-    
-    def load_config(self) -> UPIDConfig:
-        """Load configuration from file and environment variables"""
-        if self._config is not None:
-            return self._config
-        
-        # Start with default configuration
-        config_dict = self._get_default_config()
-        
-        # Override with file configuration if exists
-        if Path(self._config_file).exists():
-            try:
-                with open(self._config_file, 'r') as f:
-                    file_config = json.load(f)
-                    config_dict = self._deep_merge(config_dict, file_config)
-                self.logger.debug(f"Loaded configuration from {self._config_file}")
-            except Exception as e:
-                self.logger.warning(f"Failed to load config file {self._config_file}: {e}")
-        
-        # Override with environment variables
-        env_config = self._load_from_environment()
-        config_dict = self._deep_merge(config_dict, env_config)
-        
-        # Create configuration object
-        self._config = self._dict_to_config(config_dict)
-        return self._config
-    
-    def _get_default_config(self) -> Dict[str, Any]:
-        """Get default configuration as dictionary"""
-        return {
-            "product": asdict(ProductInfo()),
-            "api": asdict(APIConfig()),
-            "database": asdict(DatabaseConfig()),
-            "kubernetes": asdict(KubernetesConfig()),
-            "logging": asdict(LoggingConfig()),
-            "security": asdict(SecurityConfig()),
-            "mock_data": asdict(MockDataConfig()),
-            "ui": asdict(UIConfig()),
-            "features": asdict(FeatureFlags())
-        }
-    
-    def _load_from_environment(self) -> Dict[str, Any]:
-        """Load configuration values from environment variables"""
-        env_config = {}
-        
-        # Define environment variable mappings
-        env_mappings = {
-            f"{self._env_prefix}VERSION": ["product", "version"],
-            f"{self._env_prefix}BUILD_VERSION": ["product", "build_version"],
-            f"{self._env_prefix}AUTHOR": ["product", "author"],
-            f"{self._env_prefix}AUTHOR_EMAIL": ["product", "author_email"],
-            f"{self._env_prefix}API_BASE_URL": ["api", "base_url"],
-            f"{self._env_prefix}API_TIMEOUT": ["api", "timeout_seconds"],
-            f"{self._env_prefix}DATABASE_URL": ["database", "default_url"],
-            f"{self._env_prefix}KUBECONFIG": ["kubernetes", "config_file"],
-            f"{self._env_prefix}KUBE_CONTEXT": ["kubernetes", "context"],
-            f"{self._env_prefix}KUBE_NAMESPACE": ["kubernetes", "namespace"],
-            f"{self._env_prefix}LOG_LEVEL": ["logging", "level"],
-            f"{self._env_prefix}LOG_FILE": ["logging", "file_path"],
-            f"{self._env_prefix}SECRET_KEY": ["security", "secret_key"],
-            f"{self._env_prefix}MOCK_MODE": ["mock_data", "enabled"],
-            f"{self._env_prefix}MOCK_SCENARIO": ["mock_data", "scenario"],
-            f"{self._env_prefix}UI_THEME": ["ui", "theme"],
-            f"{self._env_prefix}UI_COLOR": ["ui", "color_enabled"],
-        }
-        
-        for env_var, config_path in env_mappings.items():
-            value = os.environ.get(env_var)
-            if value is not None:
-                # Convert string values to appropriate types
-                value = self._convert_env_value(value)
-                self._set_nested_value(env_config, config_path, value)
-        
-        return env_config
-    
-    def _convert_env_value(self, value: str) -> Any:
-        """Convert environment variable string to appropriate type"""
-        # Boolean conversion
-        if value.lower() in ('true', 'false'):
-            return value.lower() == 'true'
-        
-        # Integer conversion
-        try:
-            return int(value)
-        except ValueError:
-            pass
-        
-        # Float conversion
-        try:
-            return float(value)
-        except ValueError:
-            pass
-        
-        # Return as string
-        return value
-    
-    def _set_nested_value(self, config: Dict[str, Any], path: list, value: Any):
-        """Set nested dictionary value using path list"""
-        current = config
-        for key in path[:-1]:
-            if key not in current:
-                current[key] = {}
-            current = current[key]
-        current[path[-1]] = value
-    
-    def _deep_merge(self, base: Dict[str, Any], override: Dict[str, Any]) -> Dict[str, Any]:
-        """Deep merge two dictionaries"""
-        result = base.copy()
-        
-        for key, value in override.items():
-            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
-                result[key] = self._deep_merge(result[key], value)
-            else:
-                result[key] = value
-        
-        return result
-    
-    def _dict_to_config(self, config_dict: Dict[str, Any]) -> UPIDConfig:
-        """Convert dictionary to UPIDConfig object"""
-        return UPIDConfig(
-            product=ProductInfo(**config_dict["product"]),
-            api=APIConfig(**config_dict["api"]),
-            database=DatabaseConfig(**config_dict["database"]),
-            kubernetes=KubernetesConfig(**config_dict["kubernetes"]),
-            logging=LoggingConfig(**config_dict["logging"]),
-            security=SecurityConfig(**config_dict["security"]),
-            mock_data=MockDataConfig(**config_dict["mock_data"]),
-            ui=UIConfig(**config_dict["ui"]),
-            features=FeatureFlags(**config_dict["features"])
-        )
-    
-    def save_config(self, config: Optional[UPIDConfig] = None) -> bool:
-        """Save configuration to file"""
-        config = config or self._config
-        if config is None:
-            self.logger.error("No configuration to save")
-            return False
-        
-        try:
-            # Ensure directory exists
-            config_dir = Path(self._config_file).parent
-            config_dir.mkdir(parents=True, exist_ok=True)
-            
-            # Save configuration
-            with open(self._config_file, 'w') as f:
-                json.dump(config.to_dict(), f, indent=2, default=str)
-            
-            self.logger.info(f"Configuration saved to {self._config_file}")
-            return True
-        
-        except Exception as e:
-            self.logger.error(f"Failed to save configuration: {e}")
-            return False
-    
-    def get_config(self) -> UPIDConfig:
-        """Get current configuration (loads if not already loaded)"""
-        return self.load_config()
-    
-    def reload_config(self) -> UPIDConfig:
-        """Reload configuration from file and environment"""
-        self._config = None
-        return self.load_config()
-    
-    def update_config(self, **kwargs) -> bool:
-        """Update configuration values and save"""
-        config = self.get_config()
-        
-        for key, value in kwargs.items():
-            if hasattr(config, key):
-                setattr(config, key, value)
-            else:
-                self.logger.warning(f"Unknown configuration key: {key}")
-        
-        return self.save_config(config)
-
-
-# Global configuration manager instance
-_config_manager: Optional[ConfigurationManager] = None
-
-
-def get_config_manager(config_file: Optional[str] = None) -> ConfigurationManager:
-    """Get global configuration manager instance"""
-    global _config_manager
-    if _config_manager is None:
-        _config_manager = ConfigurationManager(config_file)
-    return _config_manager
-
-
-def get_config() -> UPIDConfig:
-    """Get current UPID configuration"""
-    return get_config_manager().get_config()
-
+# Global product instance
+product_info = ProductInfo()
 
 def get_version() -> str:
-    """Get UPID version"""
-    return get_config().version
+    """Get the current version"""
+    return product_info.version
 
+def get_build_version() -> str:
+    """Get the build version"""
+    return product_info.build_version
 
-def get_author() -> str:
-    """Get UPID author"""
-    return get_config().author
+def get_api_version() -> str:
+    """Get the API version"""
+    return product_info.api_version
 
+def get_product_name() -> str:
+    """Get the product name"""
+    return product_info.name
 
-def get_author_email() -> str:
-    """Get UPID author email"""
-    return get_config().author_email
+def get_product_description() -> str:
+    """Get the product description"""
+    return product_info.description
 
+def is_enterprise_enabled() -> bool:
+    """Check if enterprise features are enabled"""
+    return product_info.enterprise_enabled
 
-def get_full_version() -> str:
-    """Get full UPID version string"""
-    return get_config().full_version
+def is_ml_enabled() -> bool:
+    """Check if ML features are enabled"""
+    return product_info.ml_enabled
 
+def is_optimization_enabled() -> bool:
+    """Check if optimization features are enabled"""
+    return product_info.optimization_enabled
 
-def get_api_base_url() -> str:
-    """Get API base URL"""
-    return get_config().api_base_url
+def is_reporting_enabled() -> bool:
+    """Check if reporting features are enabled"""
+    return product_info.reporting_enabled
 
+def is_monitoring_enabled() -> bool:
+    """Check if monitoring features are enabled"""
+    return product_info.monitoring_enabled
 
-def get_product_info() -> ProductInfo:
-    """Get product information"""
-    return get_config().product
+def is_plugin_system_enabled() -> bool:
+    """Check if plugin system is enabled"""
+    return product_info.plugin_system_enabled
 
+def is_debug_mode() -> bool:
+    """Check if debug mode is enabled"""
+    return product_info.debug_mode
 
-def is_mock_mode() -> bool:
-    """Check if mock mode is enabled"""
-    return get_config().mock_data.enabled
+def is_development_mode() -> bool:
+    """Check if development mode is enabled"""
+    return product_info.development_mode
 
+def is_test_mode() -> bool:
+    """Check if test mode is enabled"""
+    return product_info.test_mode
 
-def get_mock_scenario() -> str:
-    """Get mock data scenario"""
-    return get_config().mock_data.scenario
+def is_mock_data_enabled() -> bool:
+    """Check if mock data is enabled"""
+    return product_info.mock_data_enabled
 
+def get_default_safety_threshold() -> float:
+    """Get the default safety threshold"""
+    return product_info.default_safety_threshold
 
-# Convenience functions for CLI usage
-def print_version_info():
-    """Print version information"""
-    config = get_config()
-    print(f"{config.product.name} {config.product.version}")
-    print(f"Build: {config.product.build_version}")
-    print(f"Author: {config.product.author} <{config.product.author_email}>")
-    print(f"Homepage: {config.product.homepage}")
-    print(f"License: {config.product.license}")
+def get_default_dry_run() -> bool:
+    """Get the default dry run setting"""
+    return product_info.default_dry_run
 
+def get_api_settings() -> dict:
+    """Get API settings"""
+    return {
+        "host": product_info.api_host,
+        "port": product_info.api_port,
+        "timeout": product_info.api_timeout,
+        "max_workers": product_info.api_max_workers
+    }
 
-def print_config_info():
-    """Print configuration information"""
-    config = get_config()
-    print("UPID Configuration:")
-    print(f"  Config File: {get_config_manager()._config_file}")
-    print(f"  Version: {config.version}")
-    print(f"  API URL: {config.api_base_url}")
-    print(f"  Mock Mode: {'Enabled' if config.mock_data.enabled else 'Disabled'}")
-    print(f"  Log Level: {config.logging.level}")
-    print(f"  Theme: {config.ui.theme}")
+def get_database_settings() -> dict:
+    """Get database settings"""
+    return {
+        "url": product_info.db_url,
+        "pool_size": product_info.db_pool_size,
+        "max_overflow": product_info.db_max_overflow
+    }
 
+def get_security_settings() -> dict:
+    """Get security settings"""
+    return {
+        "jwt_secret": product_info.jwt_secret,
+        "jwt_expiry_hours": product_info.jwt_expiry_hours,
+        "mfa_enabled": product_info.mfa_enabled,
+        "sso_enabled": product_info.sso_enabled
+    }
+
+def get_cloud_settings() -> dict:
+    """Get cloud provider settings"""
+    return {
+        "aws_region": product_info.aws_region,
+        "gcp_project": product_info.gcp_project,
+        "azure_subscription": product_info.azure_subscription
+    }
+
+def get_optimization_settings() -> dict:
+    """Get optimization settings"""
+    return {
+        "enabled": product_info.optimization_enabled,
+        "zero_pod_scaling": product_info.zero_pod_scaling,
+        "resource_rightsizing": product_info.resource_rightsizing,
+        "cost_optimization": product_info.cost_optimization,
+        "safety_checks": product_info.safety_checks
+    }
+
+def get_analytics_settings() -> dict:
+    """Get analytics settings"""
+    return {
+        "enabled": product_info.analytics_enabled,
+        "ml_enabled": product_info.ml_enabled,
+        "prediction_horizon_days": product_info.prediction_horizon_days,
+        "anomaly_detection": product_info.anomaly_detection
+    }
+
+def get_reporting_settings() -> dict:
+    """Get reporting settings"""
+    return {
+        "enabled": product_info.reporting_enabled,
+        "executive_reports": product_info.executive_reports,
+        "technical_reports": product_info.technical_reports,
+        "cost_reports": product_info.cost_reports,
+        "performance_reports": product_info.performance_reports
+    }
+
+def get_monitoring_settings() -> dict:
+    """Get monitoring settings"""
+    return {
+        "enabled": product_info.monitoring_enabled,
+        "real_time_monitoring": product_info.real_time_monitoring,
+        "alerting_enabled": product_info.alerting_enabled,
+        "metrics_retention_days": product_info.metrics_retention_days
+    }
+
+def get_plugin_settings() -> dict:
+    """Get plugin system settings"""
+    return {
+        "enabled": product_info.plugin_system_enabled,
+        "auto_load": product_info.plugin_auto_load,
+        "validation": product_info.plugin_validation
+    }
+
+def get_logging_settings() -> dict:
+    """Get logging settings"""
+    return {
+        "level": product_info.log_level,
+        "format": product_info.log_format,
+        "rotation": product_info.log_rotation,
+        "max_size_mb": product_info.log_max_size_mb,
+        "backup_count": product_info.log_backup_count
+    }
+
+def get_performance_settings() -> dict:
+    """Get performance settings"""
+    return {
+        "max_concurrent_requests": product_info.max_concurrent_requests,
+        "request_timeout_seconds": product_info.request_timeout_seconds,
+        "cache_enabled": product_info.cache_enabled,
+        "cache_ttl_seconds": product_info.cache_ttl_seconds
+    }
+
+def get_enterprise_settings() -> dict:
+    """Get enterprise settings"""
+    return {
+        "enabled": product_info.enterprise_enabled,
+        "multi_tenant": product_info.multi_tenant,
+        "audit_logging": product_info.audit_logging,
+        "compliance_mode": product_info.compliance_mode
+    }
+
+def get_cicd_settings() -> dict:
+    """Get CI/CD settings"""
+    return {
+        "enabled": product_info.ci_cd_enabled,
+        "automated_testing": product_info.automated_testing,
+        "deployment_validation": product_info.deployment_validation,
+        "gitops_integration": product_info.gitops_integration
+    }
+
+def get_paths() -> dict:
+    """Get configuration paths"""
+    return {
+        "config_dir": product_info.config_dir,
+        "data_dir": product_info.data_dir,
+        "log_dir": product_info.log_dir,
+        "cache_dir": product_info.cache_dir,
+        "plugin_dir": product_info.plugin_dir
+    }
+
+def get_defaults() -> dict:
+    """Get default settings"""
+    return {
+        "namespace": product_info.default_namespace,
+        "time_range": product_info.default_time_range,
+        "output_format": product_info.default_output_format,
+        "safety_threshold": product_info.default_safety_threshold,
+        "dry_run": product_info.default_dry_run
+    }
+
+def get_feature_flags() -> dict:
+    """Get feature flags"""
+    return {
+        "enable_ml": product_info.enable_ml,
+        "enable_enterprise": product_info.enable_enterprise,
+        "enable_multi_cloud": product_info.enable_multi_cloud,
+        "enable_security": product_info.enable_security,
+        "enable_analytics": product_info.enable_analytics,
+        "enable_optimization": product_info.enable_optimization,
+        "enable_reporting": product_info.enable_reporting,
+        "enable_dashboard": product_info.enable_dashboard,
+        "enable_api": product_info.enable_api,
+        "enable_plugin_system": product_info.enable_plugin_system
+    }
+
+def get_build_info() -> dict:
+    """Get build information"""
+    return {
+        "version": product_info.version,
+        "build_version": product_info.build_version,
+        "build_date": product_info.build_date,
+        "build_commit": product_info.build_commit,
+        "build_platform": product_info.build_platform
+    }
+
+def update_build_info(build_date: str = None, build_commit: str = None, build_platform: str = None):
+    """Update build information"""
+    if build_date:
+        product_info.build_date = build_date
+    if build_commit:
+        product_info.build_commit = build_commit
+    if build_platform:
+        product_info.build_platform = build_platform
+
+def set_version(version: str):
+    """Set the version"""
+    product_info.version = version
+    product_info.build_version = f"{version}-production"
+
+def set_build_version(build_version: str):
+    """Set the build version"""
+    product_info.build_version = build_version
+
+def set_api_version(api_version: str):
+    """Set the API version"""
+    product_info.api_version = api_version
+
+def set_debug_mode(enabled: bool):
+    """Set debug mode"""
+    product_info.debug_mode = enabled
+
+def set_development_mode(enabled: bool):
+    """Set development mode"""
+    product_info.development_mode = enabled
+
+def set_test_mode(enabled: bool):
+    """Set test mode"""
+    product_info.test_mode = enabled
+
+def set_mock_data_enabled(enabled: bool):
+    """Set mock data enabled"""
+    product_info.mock_data_enabled = enabled
+
+def set_safety_threshold(threshold: float):
+    """Set the safety threshold"""
+    product_info.default_safety_threshold = threshold
+
+def set_dry_run_default(enabled: bool):
+    """Set the default dry run setting"""
+    product_info.default_dry_run = enabled
+
+def set_api_settings(host: str = None, port: int = None, timeout: int = None, max_workers: int = None):
+    """Set API settings"""
+    if host:
+        product_info.api_host = host
+    if port:
+        product_info.api_port = port
+    if timeout:
+        product_info.api_timeout = timeout
+    if max_workers:
+        product_info.api_max_workers = max_workers
+
+def set_database_settings(url: str = None, pool_size: int = None, max_overflow: int = None):
+    """Set database settings"""
+    if url:
+        product_info.db_url = url
+    if pool_size:
+        product_info.db_pool_size = pool_size
+    if max_overflow:
+        product_info.db_max_overflow = max_overflow
+
+def set_security_settings(jwt_secret: str = None, jwt_expiry_hours: int = None, mfa_enabled: bool = None, sso_enabled: bool = None):
+    """Set security settings"""
+    if jwt_secret:
+        product_info.jwt_secret = jwt_secret
+    if jwt_expiry_hours:
+        product_info.jwt_expiry_hours = jwt_expiry_hours
+    if mfa_enabled is not None:
+        product_info.mfa_enabled = mfa_enabled
+    if sso_enabled is not None:
+        product_info.sso_enabled = sso_enabled
+
+def set_cloud_settings(aws_region: str = None, gcp_project: str = None, azure_subscription: str = None):
+    """Set cloud provider settings"""
+    if aws_region:
+        product_info.aws_region = aws_region
+    if gcp_project:
+        product_info.gcp_project = gcp_project
+    if azure_subscription:
+        product_info.azure_subscription = azure_subscription
+
+def set_optimization_settings(enabled: bool = None, zero_pod_scaling: bool = None, resource_rightsizing: bool = None, cost_optimization: bool = None, safety_checks: bool = None):
+    """Set optimization settings"""
+    if enabled is not None:
+        product_info.optimization_enabled = enabled
+    if zero_pod_scaling is not None:
+        product_info.zero_pod_scaling = zero_pod_scaling
+    if resource_rightsizing is not None:
+        product_info.resource_rightsizing = resource_rightsizing
+    if cost_optimization is not None:
+        product_info.cost_optimization = cost_optimization
+    if safety_checks is not None:
+        product_info.safety_checks = safety_checks
+
+def set_analytics_settings(enabled: bool = None, ml_enabled: bool = None, prediction_horizon_days: int = None, anomaly_detection: bool = None):
+    """Set analytics settings"""
+    if enabled is not None:
+        product_info.analytics_enabled = enabled
+    if ml_enabled is not None:
+        product_info.ml_enabled = ml_enabled
+    if prediction_horizon_days:
+        product_info.prediction_horizon_days = prediction_horizon_days
+    if anomaly_detection is not None:
+        product_info.anomaly_detection = anomaly_detection
+
+def set_reporting_settings(enabled: bool = None, executive_reports: bool = None, technical_reports: bool = None, cost_reports: bool = None, performance_reports: bool = None):
+    """Set reporting settings"""
+    if enabled is not None:
+        product_info.reporting_enabled = enabled
+    if executive_reports is not None:
+        product_info.executive_reports = executive_reports
+    if technical_reports is not None:
+        product_info.technical_reports = technical_reports
+    if cost_reports is not None:
+        product_info.cost_reports = cost_reports
+    if performance_reports is not None:
+        product_info.performance_reports = performance_reports
+
+def set_monitoring_settings(enabled: bool = None, real_time_monitoring: bool = None, alerting_enabled: bool = None, metrics_retention_days: int = None):
+    """Set monitoring settings"""
+    if enabled is not None:
+        product_info.monitoring_enabled = enabled
+    if real_time_monitoring is not None:
+        product_info.real_time_monitoring = real_time_monitoring
+    if alerting_enabled is not None:
+        product_info.alerting_enabled = alerting_enabled
+    if metrics_retention_days:
+        product_info.metrics_retention_days = metrics_retention_days
+
+def set_plugin_settings(enabled: bool = None, auto_load: bool = None, validation: bool = None):
+    """Set plugin system settings"""
+    if enabled is not None:
+        product_info.plugin_system_enabled = enabled
+    if auto_load is not None:
+        product_info.plugin_auto_load = auto_load
+    if validation is not None:
+        product_info.plugin_validation = validation
+
+def set_logging_settings(level: str = None, format: str = None, rotation: bool = None, max_size_mb: int = None, backup_count: int = None):
+    """Set logging settings"""
+    if level:
+        product_info.log_level = level
+    if format:
+        product_info.log_format = format
+    if rotation is not None:
+        product_info.log_rotation = rotation
+    if max_size_mb:
+        product_info.log_max_size_mb = max_size_mb
+    if backup_count:
+        product_info.log_backup_count = backup_count
+
+def set_performance_settings(max_concurrent_requests: int = None, request_timeout_seconds: int = None, cache_enabled: bool = None, cache_ttl_seconds: int = None):
+    """Set performance settings"""
+    if max_concurrent_requests:
+        product_info.max_concurrent_requests = max_concurrent_requests
+    if request_timeout_seconds:
+        product_info.request_timeout_seconds = request_timeout_seconds
+    if cache_enabled is not None:
+        product_info.cache_enabled = cache_enabled
+    if cache_ttl_seconds:
+        product_info.cache_ttl_seconds = cache_ttl_seconds
+
+def set_enterprise_settings(enabled: bool = None, multi_tenant: bool = None, audit_logging: bool = None, compliance_mode: bool = None):
+    """Set enterprise settings"""
+    if enabled is not None:
+        product_info.enterprise_enabled = enabled
+    if multi_tenant is not None:
+        product_info.multi_tenant = multi_tenant
+    if audit_logging is not None:
+        product_info.audit_logging = audit_logging
+    if compliance_mode is not None:
+        product_info.compliance_mode = compliance_mode
+
+def set_cicd_settings(enabled: bool = None, automated_testing: bool = None, deployment_validation: bool = None, gitops_integration: bool = None):
+    """Set CI/CD settings"""
+    if enabled is not None:
+        product_info.ci_cd_enabled = enabled
+    if automated_testing is not None:
+        product_info.automated_testing = automated_testing
+    if deployment_validation is not None:
+        product_info.deployment_validation = deployment_validation
+    if gitops_integration is not None:
+        product_info.gitops_integration = gitops_integration
+
+def set_paths(config_dir: str = None, data_dir: str = None, log_dir: str = None, cache_dir: str = None, plugin_dir: str = None):
+    """Set configuration paths"""
+    if config_dir:
+        product_info.config_dir = config_dir
+    if data_dir:
+        product_info.data_dir = data_dir
+    if log_dir:
+        product_info.log_dir = log_dir
+    if cache_dir:
+        product_info.cache_dir = cache_dir
+    if plugin_dir:
+        product_info.plugin_dir = plugin_dir
+
+def set_defaults(namespace: str = None, time_range: str = None, output_format: str = None, safety_threshold: float = None, dry_run: bool = None):
+    """Set default settings"""
+    if namespace:
+        product_info.default_namespace = namespace
+    if time_range:
+        product_info.default_time_range = time_range
+    if output_format:
+        product_info.default_output_format = output_format
+    if safety_threshold:
+        product_info.default_safety_threshold = safety_threshold
+    if dry_run is not None:
+        product_info.default_dry_run = dry_run
+
+def set_feature_flags(enable_ml: bool = None, enable_enterprise: bool = None, enable_multi_cloud: bool = None, enable_security: bool = None, enable_analytics: bool = None, enable_optimization: bool = None, enable_reporting: bool = None, enable_dashboard: bool = None, enable_api: bool = None, enable_plugin_system: bool = None):
+    """Set feature flags"""
+    if enable_ml is not None:
+        product_info.enable_ml = enable_ml
+    if enable_enterprise is not None:
+        product_info.enable_enterprise = enable_enterprise
+    if enable_multi_cloud is not None:
+        product_info.enable_multi_cloud = enable_multi_cloud
+    if enable_security is not None:
+        product_info.enable_security = enable_security
+    if enable_analytics is not None:
+        product_info.enable_analytics = enable_analytics
+    if enable_optimization is not None:
+        product_info.enable_optimization = enable_optimization
+    if enable_reporting is not None:
+        product_info.enable_reporting = enable_reporting
+    if enable_dashboard is not None:
+        product_info.enable_dashboard = enable_dashboard
+    if enable_api is not None:
+        product_info.enable_api = enable_api
+    if enable_plugin_system is not None:
+        product_info.enable_plugin_system = enable_plugin_system
+
+def get_all_settings() -> dict:
+    """Get all settings"""
+    return {
+        "product_info": {
+            "name": product_info.name,
+            "description": product_info.description,
+            "version": product_info.version,
+            "build_version": product_info.build_version,
+            "api_version": product_info.api_version,
+            "author": product_info.author,
+            "repository": product_info.repository,
+            "documentation": product_info.documentation,
+            "support_email": product_info.support_email,
+            "license": product_info.license,
+            "copyright": product_info.copyright
+        },
+        "build_info": get_build_info(),
+        "api_settings": get_api_settings(),
+        "database_settings": get_database_settings(),
+        "security_settings": get_security_settings(),
+        "cloud_settings": get_cloud_settings(),
+        "optimization_settings": get_optimization_settings(),
+        "analytics_settings": get_analytics_settings(),
+        "reporting_settings": get_reporting_settings(),
+        "monitoring_settings": get_monitoring_settings(),
+        "plugin_settings": get_plugin_settings(),
+        "logging_settings": get_logging_settings(),
+        "performance_settings": get_performance_settings(),
+        "enterprise_settings": get_enterprise_settings(),
+        "cicd_settings": get_cicd_settings(),
+        "paths": get_paths(),
+        "defaults": get_defaults(),
+        "feature_flags": get_feature_flags()
+    }
+
+def print_product_info():
+    """Print product information"""
+    print(f"Product: {product_info.name}")
+    print(f"Description: {product_info.description}")
+    print(f"Version: {product_info.version}")
+    print(f"Build Version: {product_info.build_version}")
+    print(f"API Version: {product_info.api_version}")
+    print(f"Author: {product_info.author}")
+    print(f"Repository: {product_info.repository}")
+    print(f"Documentation: {product_info.documentation}")
+    print(f"Support Email: {product_info.support_email}")
+    print(f"License: {product_info.license}")
+    print(f"Copyright: {product_info.copyright}")
+
+def print_build_info():
+    """Print build information"""
+    print(f"Version: {product_info.version}")
+    print(f"Build Version: {product_info.build_version}")
+    print(f"Build Date: {product_info.build_date}")
+    print(f"Build Commit: {product_info.build_commit}")
+    print(f"Build Platform: {product_info.build_platform}")
+
+def print_feature_flags():
+    """Print feature flags"""
+    print("Feature Flags:")
+    print(f"  ML Enabled: {product_info.enable_ml}")
+    print(f"  Enterprise Enabled: {product_info.enable_enterprise}")
+    print(f"  Multi-Cloud Enabled: {product_info.enable_multi_cloud}")
+    print(f"  Security Enabled: {product_info.enable_security}")
+    print(f"  Analytics Enabled: {product_info.enable_analytics}")
+    print(f"  Optimization Enabled: {product_info.enable_optimization}")
+    print(f"  Reporting Enabled: {product_info.enable_reporting}")
+    print(f"  Dashboard Enabled: {product_info.enable_dashboard}")
+    print(f"  API Enabled: {product_info.enable_api}")
+    print(f"  Plugin System Enabled: {product_info.enable_plugin_system}")
+
+def print_settings():
+    """Print all settings"""
+    print("UPID CLI Settings:")
+    print("=" * 50)
+    print_product_info()
+    print()
+    print_build_info()
+    print()
+    print_feature_flags()
+    print()
+    print("API Settings:")
+    for key, value in get_api_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Database Settings:")
+    for key, value in get_database_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Security Settings:")
+    for key, value in get_security_settings().items():
+        if key == "jwt_secret":
+            print(f"  {key}: {'*' * len(value)}")
+        else:
+            print(f"  {key}: {value}")
+    print()
+    print("Cloud Settings:")
+    for key, value in get_cloud_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Optimization Settings:")
+    for key, value in get_optimization_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Analytics Settings:")
+    for key, value in get_analytics_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Reporting Settings:")
+    for key, value in get_reporting_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Monitoring Settings:")
+    for key, value in get_monitoring_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Plugin Settings:")
+    for key, value in get_plugin_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Logging Settings:")
+    for key, value in get_logging_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Performance Settings:")
+    for key, value in get_performance_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Enterprise Settings:")
+    for key, value in get_enterprise_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("CI/CD Settings:")
+    for key, value in get_cicd_settings().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Paths:")
+    for key, value in get_paths().items():
+        print(f"  {key}: {value}")
+    print()
+    print("Defaults:")
+    for key, value in get_defaults().items():
+        print(f"  {key}: {value}")
 
 if __name__ == "__main__":
-    # Test configuration system
-    print("Testing UPID Configuration System")
-    print("=" * 50)
-    
-    config = get_config()
-    print_version_info()
-    print()
-    print_config_info()
-    print()
-    print("Configuration JSON:")
-    print(config.to_json())
+    print_settings()

@@ -1,4 +1,4 @@
-name: Release UPID CLI
+name: Create GitHub Release
 
 on:
   push:
@@ -7,151 +7,84 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., v1.0.0)'
-        required: true
-        default: 'v1.0.0'
-
-env:
-  GO_VERSION: '1.24'
+        description: 'Version to release'
+        required: false
+        default: 'v1.0.1'
 
 jobs:
-  build-and-release:
-    name: Build and Release
+  release-notes-and-publish:
+    name: Release Notes and Publish
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      
+
     steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
-      
-    - name: Set up Go
-      uses: actions/setup-go@v5
-      with:
-        go-version: ${{ env.GO_VERSION }}
-        
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-        
-    - name: Install Python dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
-        
-    - name: Determine version
-      id: version
-      run: |
-        if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-          echo "version=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          echo "tag_name=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-        else
-          echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-          echo "tag_name=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
-        fi
-        
-    - name: Update version in config
-      run: |
-        VERSION=${{ steps.version.outputs.version }}
-        VERSION_NO_V=${VERSION#v}
-        sed -i "s/version=\".*\"/version=\"$VERSION_NO_V\"/" upid_config.py
-        sed -i "s/VERSION=\".*\"/VERSION=\"$VERSION_NO_V\"/" build_go_binary.sh
-        
-    - name: Verify Python runtime bundle
-      run: |
-        echo "Verifying Python runtime bundle..."
-        ls -la runtime/
-        echo "Python runtime bundle is already prepared with embedded dependencies"
-        
-    - name: Build binaries for all platforms
-      run: |
-        chmod +x build_go_binary.sh
-        ./build_go_binary.sh
-        
-    - name: Generate checksums
-      run: |
-        cd dist
-        sha256sum *.tar.gz > checksums.txt
-        
-    - name: Create Release Notes
-      run: |
-        VERSION=${{ steps.version.outputs.version }}
-        cat > release_notes.md << EOF
-        # UPID CLI $VERSION
-        
-        ## 🚀 Production-Ready Kubernetes Cost Optimization Platform
-        
-        ### What's New
-        - Complete Phase 7 Advanced Features (ML Integration, Enterprise Security, Advanced Analytics)
-        - All 14 tests passing with comprehensive coverage  
-        - Production-ready enterprise Kubernetes cost optimization platform
-        - Real implementation with no mock data
-        - Enterprise security with MFA, SSO, threat detection, compliance
-        - Advanced analytics with predictive analytics, BI, visualization
-        - Multi-cloud support for AWS, Azure, GCP
-        
-        ### Installation
-        \`\`\`bash
-        # Download and extract (kubectl-style)
-        curl -L https://github.com/\${{ github.repository }}/releases/download/$VERSION/upid-$VERSION-linux-amd64.tar.gz | tar -xz
-        
-        # Install 
-        ./install.sh
-        
-        # Or run directly
-        ./upid --version
-        \`\`\`
-        
-        ### Key Features
-        - **Real Pod Idle Detection**: Accurate identification beyond health check noise
-        - **Zero-Pod Scaling**: Safe automation with instant rollback guarantees  
-        - **Universal Compatibility**: "If kubectl works, UPID works" - any K8s distribution
-        - **60-80% Cost Savings**: On truly idle workloads with proven results
-        
-        ### Enterprise Features
-        - Multi-Factor Authentication with TOTP
-        - Single Sign-On (Google OAuth2)
-        - Real-time security monitoring
-        - Complete audit logging and compliance
-        - Advanced predictive analytics
-        - Business intelligence and reporting
-        
-        ### Supported Platforms
-        - Linux (amd64, arm64)
-        - macOS (amd64, arm64)  
-        - Windows (amd64, arm64)
-        
-        ### Documentation
-        - [User Manual](https://github.com/\${{ github.repository }}/blob/main/docs/USER_MANUAL.md)
-        - [API Reference](https://github.com/\${{ github.repository }}/blob/main/docs/API_REFERENCE.md) 
-        - [Command Reference](https://github.com/\${{ github.repository }}/blob/main/docs/COMMAND_REFERENCE.md)
-        
-        **🎯 Ready for Production Deployment and Client Testing!**
-        EOF
-        
-    - name: Create GitHub Release
-      uses: softprops/action-gh-release@v2
-      with:
-        tag_name: ${{ steps.version.outputs.tag_name }}
-        name: UPID CLI ${{ steps.version.outputs.version }}
-        body_path: release_notes.md
-        draft: false
-        prerelease: false
-        files: |
-          dist/*.tar.gz
-          dist/checksums.txt
-          dist/RELEASE_SUMMARY.md
-        generate_release_notes: false
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        
-    - name: Upload build artifacts
-      uses: actions/upload-artifact@v4
-      with:
-        name: upid-binaries-${{ steps.version.outputs.version }}
-        path: |
-          dist/*.tar.gz
-          dist/checksums.txt
-          dist/RELEASE_SUMMARY.md
-        retention-days: 30
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # NOTE: All build and packaging is handled by the build-binaries.yml workflow.
+      # This workflow only creates release notes and publishes the release.
+
+      - name: Determine version
+        id: version
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            VERSION="${{ github.event.inputs.version }}"
+          else
+            VERSION="${GITHUB_REF#refs/tags/}"
+          fi
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "tag_name=${VERSION}" >> $GITHUB_OUTPUT
+
+      - name: Create Release Notes
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          cat > release_notes.md << EOF
+          # UPID CLI $VERSION
+          
+          ## 🚀 Production-Ready Kubernetes Cost Optimization Platform
+          
+          ### What's New
+          - See the release summary and changelog for details.
+          
+          ### Installation (kubectl-style)
+          
+          **Linux:**
+          \`\`\`bash
+          curl -LO "https://github.com/\${{ github.repository }}/releases/download/$VERSION/upid-linux-amd64"
+          chmod +x upid-linux-amd64
+          sudo mv upid-linux-amd64 /usr/local/bin/upid
+          \`\`\`
+          
+          **macOS:**
+          \`\`\`bash
+          curl -LO "https://github.com/\${{ github.repository }}/releases/download/$VERSION/upid-darwin-amd64"
+          chmod +x upid-darwin-amd64
+          sudo mv upid-darwin-amd64 /usr/local/bin/upid
+          \`\`\`
+          
+          **Windows:**
+          \`\`\`powershell
+          Invoke-WebRequest -Uri "https://github.com/\${{ github.repository }}/releases/download/$VERSION/upid-windows-amd64.exe" -OutFile "upid.exe"
+          Move-Item upid.exe "\$env:USERPROFILE\bin\upid.exe"
+          \`\`\`
+          
+          ### Documentation
+          - [User Manual](https://github.com/\${{ github.repository }}/blob/main/docs/USER_MANUAL.md)
+          - [API Reference](https://github.com/\${{ github.repository }}/blob/main/docs/API_REFERENCE.md)
+          - [Command Reference](https://github.com/\${{ github.repository }}/blob/main/docs/COMMAND_REFERENCE.md)
+          
+          **🎯 Ready for Production Deployment and Client Testing!**
+          EOF
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.version.outputs.tag_name }}
+          name: UPID CLI ${{ steps.version.outputs.version }}
+          body_path: release_notes.md
+          draft: false
+          prerelease: false
+          generate_release_notes: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
