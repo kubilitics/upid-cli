@@ -22,8 +22,8 @@ class ProductInfo:
     """Product information and metadata"""
     name: str = "UPID CLI"
     description: str = "Universal Prometheus Infrastructure Discovery - Kubernetes Cost Optimization CLI"
-    version: str = "1.0.0"
-    build_version: str = "1.0.0-stable"
+    version: str = "2.0.0"
+    build_version: str = "2.0.0-production"
     api_version: str = "v2"
     author: str = "UPID Development Team"
     author_email: str = "dev@upid.io"
@@ -35,8 +35,8 @@ class ProductInfo:
     documentation: str = "https://docs.upid.io"
     support_email: str = "support@upid.io"
     sales_email: str = "sales@upid.io"
-    copyright_year: str = "2024"
-    copyright_notice: str = "© 2024 UPID Development Team. All rights reserved."
+    copyright_year: str = "2025"
+    copyright_notice: str = "© 2025 UPID Development Team. All rights reserved."
 
 
 @dataclass

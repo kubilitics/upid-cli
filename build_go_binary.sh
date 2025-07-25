@@ -12,7 +12,7 @@ BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Version from config
-VERSION="1.0.0"
+VERSION="2.0.0"
 COMMIT=$(git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
 
