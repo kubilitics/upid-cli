@@ -25,15 +25,15 @@ func NewPythonBridge(pythonPath, scriptPath string, debug bool) *PythonBridge {
 
 // ExecuteCommand executes a Python command and returns the result
 func (pb *PythonBridge) ExecuteCommand(cmd string, args []string) ([]byte, error) {
-	// Prepare command arguments - use the Python module directly
-	cmdArgs := append([]string{"-m", "upid_python.cli"}, cmd)
-	cmdArgs = append(cmdArgs, args...)
+	// Use the runtime bootstrap script instead of module
+	runtimeScript := "runtime/upid_runtime.py"
+	cmdArgs := append([]string{runtimeScript, cmd}, args...)
 	
 	if pb.debug {
-		fmt.Printf("Executing Python command: %s %s\n", pb.pythonPath, strings.Join(cmdArgs, " "))
+		fmt.Printf("Executing Python runtime: %s %s\n", pb.pythonPath, strings.Join(cmdArgs, " "))
 	}
 
-	// Execute Python command
+	// Execute Python runtime command
 	output, err := exec.Command(pb.pythonPath, cmdArgs...).Output()
 	if err != nil {
 		return nil, fmt.Errorf("Python command failed: %v", err)
