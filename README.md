@@ -4,34 +4,50 @@
 
 ![UPID Logo](https://img.shields.io/badge/UPID-CLI-blue?style=for-the-badge&logo=kubernetes)
 
-**Kubernetes Resource Optimization Platform**
+**🚧 DEVELOPMENT VERSION - NOT FOR PRODUCTION USE 🚧**
 
-[![Version](https://img.shields.io/badge/version-1.0.0-green.svg)](https://github.com/your-org/upid-cli/releases)
+[![Version](https://img.shields.io/badge/version-2.0.0--dev-orange.svg)](https://github.com/your-org/upid-cli/releases)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Linux%20%7C%20macOS%20%7C%20Windows-lightgrey.svg)](https://github.com/your-org/upid-cli/releases)
 
-🚀 **Optimize your Kubernetes clusters for cost, performance, and efficiency**
+🔬 **Enterprise Kubernetes Cost Optimization Platform - In Development**
 
-[Quick Start](#quick-start) • [Features](#features) • [Installation](#installation) • [Documentation](#documentation)
+[Installation](#installation) • [Features](#features) • [Development](#development) • [Contributing](#contributing)
 
 </div>
 
 ---
 
-## 🎯 **The Problem We Solve**
+## 🚨 **IMPORTANT NOTICE**
 
-### The $1B+ "Health Check Illusion" Problem
+**This is a development version and is NOT ready for production use.** 
+
+**Current Status:**
+- ✅ CLI interface and Go binaries are functional
+- ✅ Database schema and architecture complete  
+- ✅ All 7 development phases implemented
+- ⚠️ Python dependencies need proper packaging
+- ⚠️ API server needs deployment configuration
+- ⚠️ Authentication system needs production setup
+
+**For Developers & Contributors Only** - Please see [Development](#development) section below.
+
+---
+
+## 🎯 **Vision: The $1B+ "Health Check Illusion" Solution**
+
+### The Problem We're Solving
 
 Most Kubernetes cost optimization tools suffer from the **Health Check Illusion** - they see constant traffic from health checks and assume workloads are active, missing **60-80% of potential cost savings**.
 
-UPID CLI solves this with **5-layer intelligent filtering**:
+UPID CLI will solve this with **5-layer intelligent filtering**:
 - 🔍 **Health Check Detection**: Filters kube-probe, load balancer health checks
 - 📊 **Real Traffic Analysis**: Identifies genuine business requests
 - 🤖 **ML-Powered Intelligence**: Predicts actual resource needs
 - ⚡ **Zero-Pod Scaling**: Safe automation with rollback guarantees
 - 💰 **Executive Insights**: ROI calculations and cost optimization
 
-## ✨ **Key Features**
+## ✨ **Planned Features (In Development)**
 
 ### 🎯 **Core Capabilities**
 - **Real Pod Idle Detection**: Accurate identification beyond health check noise
@@ -51,257 +67,11 @@ UPID CLI solves this with **5-layer intelligent filtering**:
 - **Rollback Guaranteed**: All changes can be instantly reverted
 - **Risk Assessment**: ML-powered safety scoring for every optimization
 
-## 🚀 **Quick Start**
+## 🛠️ **Development**
 
-### Prerequisites
-- Kubernetes cluster access (any distribution)
-- `kubectl` installed and configured
-- No other dependencies required!
-
-### Installation
-
-#### Option 1: Download Binary (Recommended)
-```bash
-# Download latest release
-curl -L https://github.com/your-org/upid-cli/releases/latest/download/upid-linux-amd64 -o upid
-chmod +x upid
-
-# Verify installation
-upid --version
-```
-
-#### Option 2: Build from Source
-```bash
-git clone https://github.com/your-org/upid-cli.git
-cd upid-cli
-python3 build_binary.py
-```
-
-### 30-Second Demo
-
-```bash
-# 1. Analyze your cluster
-upid analyze cluster
-
-# 2. Find idle workloads (with health check filtering)
-upid analyze idle default --confidence 0.80
-
-# 3. Safe zero-pod scaling simulation
-upid optimize zero-pod default --dry-run
-
-# 4. Generate executive cost report
-upid report executive default
-```
-
-## 📋 **Real-World Example**
-
-```bash
-$ upid analyze idle production --confidence 0.85
-
-🔍 UPID Analysis Results - Production Namespace
-═══════════════════════════════════════════════
-
-✅ Health Check Filtering Applied
-   └─ Filtered 2,847 health check requests (95% of traffic)
-   └─ Analyzing 142 genuine business requests (5% of traffic)
-
-🎯 Idle Workload Detection
-┌─────────────────────┬─────────┬──────────────┬─────────────┬───────────────┐
-│ Workload            │ Pods    │ Traffic      │ Confidence  │ Monthly Cost  │
-├─────────────────────┼─────────┼──────────────┼─────────────┼───────────────┤
-│ legacy-api-v1       │ 3       │ 0.2 req/min  │ 96%         │ $847/month    │
-│ batch-processor     │ 5       │ 0 req/min    │ 99%         │ $1,205/month  │
-│ temp-migration-svc  │ 2       │ 0 req/min    │ 99%         │ $423/month    │
-└─────────────────────┴─────────┴──────────────┴─────────────┴───────────────┘
-
-💰 Total Potential Savings: $2,475/month ($29,700/year)
-🛡️  Safety Score: HIGH - All workloads safe for zero-pod scaling
-
-🚀 Ready to optimize? Run: upid optimize zero-pod production --dry-run
-```
-
-## 📊 Core Commands
-
-### **Analysis Commands**
-```bash
-# Cluster analysis
-upid analyze cluster [--namespace NAMESPACE] [--time-range 1h|6h|24h|7d]
-
-# Pod analysis
-upid analyze pod POD_NAME --namespace NAMESPACE
-
-# Resource analysis
-upid analyze cpu [--time-range 24h]
-upid analyze memory [--time-range 24h]
-upid analyze network [--time-range 24h]
-```
-
-### **Optimization Commands**
-```bash
-# Get recommendations
-upid optimize resources
-
-# Apply optimizations
-upid optimize apply --recommendation-id RECOMMENDATION_ID
-
-# Cost optimization
-upid optimize cost --time-range 30d
-```
-
-### **Reporting Commands**
-```bash
-# Executive summary
-upid report executive --time-range 7d
-
-# Technical report
-upid report technical --time-range 24h
-
-# Export reports
-upid report export --format pdf --output report.pdf
-```
-
-### **Machine Learning**
-```bash
-# Resource prediction
-upid ml predict --resource cpu --horizon 7d
-
-# Anomaly detection
-upid ml anomalies --severity high
-```
-
-### **Business Intelligence**
-```bash
-# View KPIs
-upid bi kpis --time-range 30d
-
-# ROI analysis
-upid bi roi --time-range 90d
-```
-
-## 🔐 Authentication
-
-### **Default Authentication**
-```bash
-upid auth login
-# Username: admin
-# Password: admin123
-```
-
-### **Enterprise Authentication**
-```bash
-# OIDC
-upid auth oidc --provider-url https://your-oidc-provider.com
-
-# SAML
-upid auth saml --metadata-url https://your-saml-provider.com/metadata
-
-# LDAP
-upid auth ldap --server ldap://your-ldap-server.com
-```
-
-## ☁️ Cloud Integration
-
-### **AWS Integration**
-```bash
-upid cloud aws configure --access-key ACCESS_KEY --secret-key SECRET_KEY
-upid cloud aws costs --time-range 30d
-```
-
-### **GCP Integration**
-```bash
-upid cloud gcp configure --project-id PROJECT_ID --key-file key.json
-upid cloud gcp costs --time-range 30d
-```
-
-### **Azure Integration**
-```bash
-upid cloud azure configure --subscription-id SUBSCRIPTION_ID --tenant-id TENANT_ID
-upid cloud azure costs --time-range 30d
-```
-
-## 🏗️ Architecture
-
-```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   UPID CLI      │    │   Kubernetes    │    │   Cloud APIs    │
-│                 │    │   Cluster       │    │   (AWS/GCP/Az)  │
-│  ┌───────────┐  │    │                 │    │                 │
-│  │   Auth    │  │◄──►│  ┌───────────┐  │    │  ┌───────────┐  │
-│  │  Engine   │  │    │  │  Metrics  │  │    │  │  Billing  │  │
-│  └───────────┘  │    │  │ Collector │  │    │  │   APIs    │  │
-│                 │    │  └───────────┘  │    │  └───────────┘  │
-│  ┌───────────┐  │    │                 │    │                 │
-│  │    ML     │  │    │  ┌───────────┐  │    │  ┌───────────┐  │
-│  │  Engine   │  │◄──►│  │  Resource │  │    │  │  Compute  │  │
-│  └───────────┘  │    │  │   APIs    │  │    │  │   APIs    │  │
-│                 │    │  └───────────┘  │    │  └───────────┘  │
-│  ┌───────────┐  │    │                 │    │                 │
-│  │ Business  │  │    │  ┌───────────┐  │    │  ┌───────────┐  │
-│  │Intelligence│  │◄──►│  │  Prometheus│  │    │  │  Storage  │  │
-│  └───────────┘  │    │  │   Metrics │  │    │  │   APIs    │  │
-│                 │    │  └───────────┘  │    │  └───────────┘  │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-```
-
-## 📈 Features Overview
-
-### **Real-time Analytics**
-- ✅ **Live Metrics Collection**: Real-time Kubernetes metrics
-- ✅ **Resource Intelligence**: Advanced CPU, memory, network analysis
-- ✅ **Performance Insights**: Deep performance analysis
-- ✅ **Cost Optimization**: Multi-cloud cost analysis
-- ✅ **Anomaly Detection**: Intelligent pattern recognition
-
-### **Machine Learning**
-- ✅ **Predictive Analytics**: Resource usage forecasting
-- ✅ **ML Models**: Pre-trained models for predictions
-- ✅ **Automated Optimization**: ML-powered recommendations
-- ✅ **Business Intelligence**: KPI tracking and ROI analysis
-
-### **Enterprise Security**
-- ✅ **Multi-Factor Authentication**: Secure enterprise auth
-- ✅ **Role-Based Access Control**: Granular permissions
-- ✅ **Audit Logging**: Comprehensive security logging
-- ✅ **Multi-Cloud Support**: AWS, GCP, Azure integration
-
-### **Executive Dashboard**
-- ✅ **Business KPIs**: Executive-level metrics
-- ✅ **Cost Analysis**: Detailed cost breakdown
-- ✅ **ROI Tracking**: Return on investment analysis
-- ✅ **Executive Reports**: Automated reporting
-
-## 🧪 Testing
-
-### **Run Tests**
-```bash
-# Unit tests
-pytest tests/unit/
-
-# Integration tests
-pytest tests/integration/
-
-# Full test suite
-pytest tests/
-```
-
-### **Test Coverage**
-```bash
-# Generate coverage report
-pytest --cov=upid tests/
-```
-
-## 📚 Documentation
-
-- **[User Manual](docs/guides/UPID_USER_MANUAL.md)**: Comprehensive user guide
-- **[Quick Reference](docs/guides/UPID_QUICK_REFERENCE.md)**: Command reference
-- **[Installation Guide](docs/guides/UPID_INSTALLATION_GUIDE.md)**: Detailed installation instructions
-- **[API Documentation](docs/architecture/api-refernce.md)**: REST API reference
-- **[Architecture Guide](docs/architecture/upid_architecture_complete.md)**: System architecture
-
-## 🔧 Development
-
-### **Prerequisites**
+### **Prerequisites for Developers**
 - Python 3.9+
+- Go 1.19+
 - kubectl configured
 - Access to Kubernetes cluster
 
@@ -317,73 +87,239 @@ source venv/bin/activate  # On Windows: venv\Scripts\activate
 
 # Install dependencies
 pip install -r requirements.txt
+pip install -r requirements-dev.txt
 
 # Install in development mode
 pip install -e .
 ```
 
-### **Run Development Server**
+### **Build Development Binary**
 ```bash
-# Start API server
-upid api start --port 8080
+# Build Go binary for current platform
+./build_go_binary.sh
 
-# Run CLI commands
-upid analyze cluster
+# Test the built binary
+./dist/upid-darwin-arm64 --help
 ```
 
-## 🤝 Contributing
+### **Run Development Tests**
+```bash
+# Run unit tests
+make test-unit
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+# Run integration tests  
+make test-integration
+
+# Run all tests
+make test-all
+```
+
+## 📋 **Architecture Status**
+
+### ✅ **Completed Components**
+
+#### 1. CLI Interface (Go) - **95% Complete**
+- **Location**: `cmd/upid/`, `internal/commands/`
+- **Status**: Professional Cobra-based CLI with comprehensive command structure
+- **Functionality**: All command hierarchies defined with help text
+
+#### 2. Database System - **90% Complete**
+- **Location**: `api_server/database/`
+- **Status**: Complete SQLAlchemy models with enterprise schema
+- **Functionality**: Users, Clusters, Workloads, OptimizationRuns, etc.
+
+#### 3. Configuration Management - **100% Complete** ✅
+- **Location**: `upid_config.py`, `upid_python/core/central_config.py`
+- **Status**: Centralized configuration system
+- **Functionality**: Single source of truth for all product metadata
+
+#### 4. Build System - **85% Complete**
+- **Location**: `build_binary.py`, `build_go_binary.sh`
+- **Status**: Multi-platform binary builds working
+- **Functionality**: Cross-platform Go and Python binary generation
+
+### 🔶 **In Progress Components**
+
+#### 5. Python Backend Integration - **60% Complete**
+- **Location**: `upid_python/core/`, `upid_python/ml/`
+- **Status**: Complete code structure, needs dependency management
+- **Required**: Proper Python packaging and deployment
+
+#### 6. API Server - **70% Complete**
+- **Location**: `api_server/`
+- **Status**: FastAPI application with all endpoints
+- **Required**: Production deployment configuration
+
+#### 7. Authentication System - **75% Complete**
+- **Location**: `upid_python/core/auth.py`
+- **Status**: Well-designed auth system
+- **Required**: Provider integrations and production setup
+
+### 🔴 **Not Ready for Production**
+
+#### 8. Dependency Management - **30% Complete**
+- **Status**: Requirements defined but not packaged
+- **Required**: Docker containers or embedded Python runtime
+
+#### 9. Production Deployment - **20% Complete**
+- **Status**: Development scripts only
+- **Required**: Production-ready deployment configurations
+
+#### 10. End-to-End Integration - **40% Complete**
+- **Status**: Components exist but integration needs testing
+- **Required**: Full integration testing and validation
+
+## 🧪 **Development Testing**
+
+### **Available Make Commands**
+```bash
+# Installation
+make install          # Install production dependencies
+make install-dev      # Install development dependencies
+
+# Testing
+make test             # Run all tests
+make test-unit        # Run unit tests only
+make test-integration # Run integration tests only
+
+# Binary Building
+make binary           # Build and install binary
+make build-binary     # Build binary for current platform
+
+# Code Quality
+make lint             # Run code linting
+make type-check       # Run type checking
+make security         # Run security checks
+
+# Utilities
+make clean            # Clean build artifacts
+make help             # Show all available commands
+```
+
+### **Current Test Status**
+- **Unit Tests**: Comprehensive test suite structure in place
+- **Integration Tests**: Framework ready, needs real cluster testing
+- **Security Tests**: Security scanning and validation tools configured
+- **Performance Tests**: Load testing framework ready
+
+## 📚 **Documentation (In Development)**
+
+### **Available Documentation**
+- **[Development Roadmap](docs/DEVELOPMENT_ROADMAP.md)**: Complete development plan
+- **[API Reference](docs/architecture/api-refernce.md)**: REST API documentation  
+- **[Architecture Guide](docs/architecture/upid_architecture_complete.md)**: System architecture
+- **[User Manual](docs/guides/UPID_USER_MANUAL.md)**: User guide (draft)
+- **[Installation Guide](docs/guides/UPID_INSTALLATION_GUIDE.md)**: Installation instructions
+
+### **Documentation TODO**
+- [ ] Complete API reference with examples
+- [ ] Finalize user manual with real examples
+- [ ] Create troubleshooting guide
+- [ ] Add security configuration guide
+- [ ] Write deployment guide
+
+## 🤝 **Contributing**
+
+We welcome contributions! This is an active development project.
 
 ### **Development Workflow**
 1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests
-5. Submit a pull request
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Install development dependencies (`make install-dev`)
+4. Make your changes
+5. Run tests (`make test`)
+6. Run code quality checks (`make lint type-check`)
+7. Commit your changes (`git commit -m 'Add amazing feature'`)
+8. Push to the branch (`git push origin feature/amazing-feature`)
+9. Open a Pull Request
 
-## 📄 License
+### **Contribution Areas**
+- **Backend Integration**: Help complete Python-Go integration
+- **Authentication**: Implement production-ready auth providers
+- **Testing**: Add integration tests and real cluster testing
+- **Documentation**: Improve user guides and API documentation
+- **Deployment**: Create production deployment configurations
+- **Security**: Enhance security features and compliance
+
+## 📊 **Current Development Status**
+
+### **Overall Progress: 70% Complete**
+
+| Component | Status | Priority |
+|-----------|--------|----------|
+| CLI Interface | ✅ 95% | High |
+| Configuration System | ✅ 100% | High |
+| Database Schema | ✅ 90% | High |
+| Build System | ✅ 85% | High |
+| Python Backend | 🔶 60% | Critical |
+| API Server | 🔶 70% | Critical |
+| Authentication | 🔶 75% | High |
+| Dependency Management | 🔴 30% | Critical |
+| Production Deployment | 🔴 20% | Critical |
+| End-to-End Testing | 🔴 40% | High |
+
+### **Next Milestones**
+1. **Complete Python Integration** (2-3 weeks)
+2. **Production Deployment Configuration** (1-2 weeks)
+3. **End-to-End Integration Testing** (1 week)
+4. **Security Hardening** (1 week)
+5. **Production Release** (Target: 4-6 weeks)
+
+## 🎯 **When Will This Be Production Ready?**
+
+**Estimated Timeline: 4-6 weeks** for production release, pending:
+
+### **Critical Path Items**
+1. **Python Dependency Management**: Package Python runtime with binaries
+2. **Production Configuration**: Create deployment-ready configurations
+3. **Integration Testing**: Test all components working together
+4. **Security Hardening**: Production security configurations
+5. **Documentation**: Complete user guides and examples
+
+### **Success Criteria for Production Release**
+- [ ] All CLI commands work without external dependencies
+- [ ] Authentication system fully functional
+- [ ] API server starts and responds correctly
+- [ ] Database operations work seamlessly
+- [ ] End-to-end workflows tested and verified
+- [ ] Professional installation experience
+- [ ] Complete documentation with examples
+- [ ] Security audit passed
+
+## 🆘 **Getting Help**
+
+### **For Developers**
+- **Issues**: [GitHub Issues](https://github.com/your-org/upid-cli/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/your-org/upid-cli/discussions)
+- **Email**: dev@upid.io
+
+### **For Future Users**
+- **Documentation**: [docs.upid.io](https://docs.upid.io) (coming soon)
+- **Community**: [Slack](https://slack.upid.io) (coming soon)
+- **Support**: support@upid.io
+
+## 📄 **License**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🆘 Support
+---
 
-### **Getting Help**
-- **Documentation**: [docs.upid.io](https://docs.upid.io)
-- **Issues**: [GitHub Issues](https://github.com/your-org/upid-cli/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/your-org/upid-cli/discussions)
-- **Email**: support@upid.io
+## 🏆 **Vision Statement**
 
-### **Community**
-- **Slack**: [#upid-support](https://slack.upid.io)
-- **Discord**: [UPID Community](https://discord.gg/upid)
-- **Twitter**: [@upid_cli](https://twitter.com/upid_cli)
+UPID CLI will be the **industry-leading Kubernetes cost optimization platform** that solves the Health Check Illusion problem and delivers 60-80% cost savings with enterprise-grade security and safety guarantees.
 
-## 🏆 Production Ready
+**When complete, UPID CLI will provide:**
+- Unmatched accuracy in idle workload detection
+- Enterprise-grade security and compliance features  
+- Professional installation and user experience
+- Comprehensive business intelligence and ROI analysis
+- Multi-cloud cost optimization and billing integration
+- Safety-first approach with guaranteed rollback capabilities
 
-UPID CLI v2.0 is **production ready** with:
+**Thank you for your interest in UPID CLI development!** 
 
-- ✅ **No mock data**: All implementations are real and functional
-- ✅ **Enterprise security**: Multi-factor authentication and RBAC
-- ✅ **Comprehensive testing**: 100% core functionality tested
-- ✅ **Multi-platform support**: Linux, macOS, Windows
-- ✅ **Cloud integration**: AWS, GCP, Azure support
-- ✅ **Machine learning**: Real ML models for predictions
-- ✅ **Business intelligence**: KPI tracking and ROI analysis
-- ✅ **Executive dashboard**: Business-level insights
-
-## 🚀 What's New in v2.0
-
-- **Production Ready**: All mock data removed, real implementations throughout
-- **Enhanced Security**: Enterprise-grade authentication with MFA
-- **Real ML Models**: Actual machine learning predictions and anomaly detection
-- **Business Intelligence**: Real KPI calculations and ROI analysis
-- **Multi-Cloud Support**: Comprehensive AWS, GCP, and Azure integration
-- **Executive Dashboard**: Business-level insights and reporting
-- **Comprehensive Documentation**: Complete user and technical documentation
+*This project represents the future of intelligent Kubernetes cost optimization.*
 
 ---
 
-**UPID CLI v2.0** - Production Ready Kubernetes Intelligence Platform
-
-*Built with ❤️ for the Kubernetes community* 
+**🔬 Development Version 2.0.0-dev** - Not for production use
