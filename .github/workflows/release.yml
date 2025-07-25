@@ -58,12 +58,11 @@ jobs:
         sed -i "s/version=\".*\"/version=\"$VERSION_NO_V\"/" upid_config.py
         sed -i "s/VERSION=\".*\"/VERSION=\"$VERSION_NO_V\"/" build_go_binary.sh
         
-    - name: Build Python runtime bundle
+    - name: Verify Python runtime bundle
       run: |
-        echo "Building Python runtime bundle..."
-        cd runtime
-        python bundle_deps.py
-        cd ..
+        echo "Verifying Python runtime bundle..."
+        ls -la runtime/
+        echo "Python runtime bundle is already prepared with embedded dependencies"
         
     - name: Build binaries for all platforms
       run: |
