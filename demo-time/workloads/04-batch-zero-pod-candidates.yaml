@@ -1,0 +1,238 @@
+---
+# Batch Processing Jobs - Perfect for Zero-Pod Scaling
+# These workloads run periodically and can be scaled to zero
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nightly-etl-job
+  namespace: upid-batch
+  labels:
+    app: nightly-etl-job
+    type: batch-job
+    schedule: nightly
+    upid.io/zero-pod-candidate: "true"
+    upid.io/scale-schedule: "0 2 * * *"  # 2 AM daily
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nightly-etl-job
+  template:
+    metadata:
+      labels:
+        app: nightly-etl-job
+        type: batch-job
+    spec:
+      containers:
+      - name: etl-worker
+        image: python:3.9-slim
+        command: ["python", "-c"]
+        args:
+        - |
+          import time
+          import datetime
+          import os
+          
+          hostname = os.environ.get('HOSTNAME', 'unknown')
+          print(f"ETL Worker {hostname} started at {datetime.datetime.now()}")
+          
+          # Simulate ETL processing
+          for i in range(30):
+              print(f"Processing batch {i+1}/30...")
+              time.sleep(10)  # Simulate work for 5 minutes total
+          
+          print(f"ETL Worker {hostname} completed at {datetime.datetime.now()}")
+          
+          # After job completion, just idle (perfect for zero-pod scaling)
+          print("Job completed. Now idling until next scheduled run...")
+          while True:
+              time.sleep(3600)  # Sleep for 1 hour intervals
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 500m
+            memory: 1Gi
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+---
+# Weekly Report Generator - Runs once per week
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: weekly-reports
+  namespace: upid-batch
+  labels:
+    app: weekly-reports
+    type: batch-job
+    schedule: weekly
+    upid.io/zero-pod-candidate: "true"
+    upid.io/scale-schedule: "0 0 * * 0"  # Sunday midnight
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: weekly-reports
+  template:
+    metadata:
+      labels:
+        app: weekly-reports
+        type: batch-job
+    spec:
+      containers:
+      - name: report-generator
+        image: busybox
+        command: ["sh", "-c"]
+        args:
+        - |
+          echo "Weekly Report Generator started on $(hostname)"
+          echo "Generating reports for the week..."
+          
+          # Simulate report generation (15 minutes of work)
+          for i in $(seq 1 15); do
+            echo "Generating report section $i/15..."
+            sleep 60
+          done
+          
+          echo "Weekly reports generated successfully!"
+          echo "Next run scheduled for next Sunday. Idling..."
+          
+          # Idle until next week - perfect for zero-pod scaling
+          while true; do
+            sleep 86400  # Sleep for 24 hours
+          done
+        resources:
+          requests:
+            cpu: 100m
+            memory: 256Mi
+          limits:
+            cpu: 300m
+            memory: 512Mi
+---
+# Data Backup Job - Runs daily for 1 hour then idles
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backup-service
+  namespace: upid-batch
+  labels:
+    app: backup-service
+    type: batch-job
+    schedule: daily
+    upid.io/zero-pod-candidate: "true"
+    upid.io/scale-schedule: "0 3 * * *"  # 3 AM daily
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: backup-service
+  template:
+    metadata:
+      labels:
+        app: backup-service
+        type: batch-job
+    spec:
+      containers:
+      - name: backup-worker
+        image: alpine:latest
+        command: ["sh", "-c"]
+        args:
+        - |
+          echo "Backup Service started on $(hostname) at $(date)"
+          
+          # Simulate backup process
+          echo "Starting database backup..."
+          sleep 300  # 5 minutes of backup work
+          
+          echo "Starting file system backup..."
+          sleep 600  # 10 minutes of file backup
+          
+          echo "Backup completed successfully at $(date)"
+          echo "Next backup scheduled for tomorrow. Going idle..."
+          
+          # Idle for the rest of the day - perfect for zero-pod scaling
+          while true; do
+            sleep 3600  # Check every hour but do nothing
+            echo "Backup service idle check at $(date)"
+          done
+        resources:
+          requests:
+            cpu: 150m
+            memory: 256Mi
+          limits:
+            cpu: 400m
+            memory: 512Mi
+---
+# ML Model Training Job - Runs on-demand, mostly idle
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ml-training-job
+  namespace: upid-batch
+  labels:
+    app: ml-training-job
+    type: batch-job
+    schedule: on-demand
+    upid.io/zero-pod-candidate: "true"
+    upid.io/trigger-based: "true"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: ml-training-job
+  template:
+    metadata:
+      labels:
+        app: ml-training-job
+        type: batch-job
+    spec:
+      containers:
+      - name: ml-trainer
+        image: python:3.9-slim
+        command: ["python", "-c"]
+        args:
+        - |
+          import time
+          import random
+          import os
+          
+          hostname = os.environ.get('HOSTNAME', 'unknown')
+          print(f"ML Training Service {hostname} started")
+          
+          # Simulate waiting for training trigger
+          print("Waiting for training trigger...")
+          
+          # Most of the time just waiting (perfect for zero-pod scaling)
+          idle_time = 0
+          while idle_time < 1800:  # Idle for 30 minutes
+              time.sleep(60)
+              idle_time += 60
+              print(f"Waiting for training trigger... ({idle_time//60} minutes idle)")
+          
+          # Occasionally do some training
+          if random.random() < 0.1:  # 10% chance of training
+              print("Training trigger received! Starting model training...")
+              for epoch in range(5):
+                  print(f"Training epoch {epoch+1}/5...")
+                  time.sleep(120)  # 2 minutes per epoch
+              print("Model training completed!")
+          
+          print("Training cycle completed. Going back to idle state...")
+          while True:
+              time.sleep(3600)  # Long idle periods
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 2000m  # High limits for training bursts
+            memory: 4Gi
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name

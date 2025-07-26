@@ -1,0 +1,207 @@
+---
+# Production Web Application - Well-optimized workload
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-frontend
+  namespace: upid-production
+  labels:
+    app: web-frontend
+    tier: frontend
+    cost-category: revenue-generating
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: web-frontend
+  template:
+    metadata:
+      labels:
+        app: web-frontend
+        tier: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 100m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 5
+---
+# Production API Service - High CPU usage
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: api-backend
+  namespace: upid-production
+  labels:
+    app: api-backend
+    tier: backend
+    cost-category: revenue-generating
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: api-backend
+  template:
+    metadata:
+      labels:
+        app: api-backend
+        tier: backend
+    spec:
+      containers:
+      - name: api-server
+        image: python:3.9-slim
+        command: ["python", "-c"]
+        args: 
+        - |
+          import time
+          import threading
+          import os
+          import random
+          
+          def cpu_work():
+              while True:
+                  # Simulate API processing work
+                  sum(i*i for i in range(10000))
+                  time.sleep(0.1)
+          
+          def memory_work():
+              data = []
+              while True:
+                  # Simulate memory usage for caching
+                  data.append([random.random() for _ in range(1000)])
+                  if len(data) > 100:
+                      data = data[-50:]  # Keep memory usage reasonable
+                  time.sleep(1)
+          
+          print(f"API Server started on {os.environ.get('HOSTNAME', 'unknown')}")
+          threading.Thread(target=cpu_work, daemon=True).start()
+          threading.Thread(target=memory_work, daemon=True).start()
+          
+          while True:
+              time.sleep(30)
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: 300m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+---
+# Production Database - Memory intensive
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: database
+  namespace: upid-production
+  labels:
+    app: database
+    tier: database
+    cost-category: critical-infrastructure
+spec:
+  serviceName: database
+  replicas: 1
+  selector:
+    matchLabels:
+      app: database
+  template:
+    metadata:
+      labels:
+        app: database
+        tier: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13-alpine
+        ports:
+        - containerPort: 5432
+        resources:
+          requests:
+            cpu: 200m
+            memory: 512Mi
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+        env:
+        - name: POSTGRES_DB
+          value: "production_db"
+        - name: POSTGRES_USER
+          value: "admin"
+        - name: POSTGRES_PASSWORD
+          value: "secure_password"
+        volumeMounts:
+        - name: postgres-data
+          mountPath: /var/lib/postgresql/data
+  volumeClaimTemplates:
+  - metadata:
+      name: postgres-data
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 10Gi
+---
+# Services for production workloads
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-frontend-svc
+  namespace: upid-production
+spec:
+  selector:
+    app: web-frontend
+  ports:
+  - port: 80
+    targetPort: 80
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: api-backend-svc
+  namespace: upid-production
+spec:
+  selector:
+    app: api-backend
+  ports:
+  - port: 8000
+    targetPort: 8000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: database-svc
+  namespace: upid-production
+spec:
+  selector:
+    app: database
+  ports:
+  - port: 5432
+    targetPort: 5432
+  type: ClusterIP

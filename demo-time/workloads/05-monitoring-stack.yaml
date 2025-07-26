@@ -1,0 +1,174 @@
+---
+# Metrics Server for Resource Monitoring
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: metrics-server
+  namespace: upid-monitoring
+  labels:
+    app: metrics-server
+    tier: monitoring
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: metrics-server
+  template:
+    metadata:
+      labels:
+        app: metrics-server
+        tier: monitoring
+    spec:
+      containers:
+      - name: metrics-server
+        image: k8s.gcr.io/metrics-server/metrics-server:v0.6.1
+        args:
+        - --cert-dir=/tmp
+        - --secure-port=4443
+        - --kubelet-preferred-address-types=InternalIP,ExternalIP,Hostname
+        - --kubelet-use-node-status-port
+        - --metric-resolution=15s
+        - --kubelet-insecure-tls  # For demo clusters
+        ports:
+        - containerPort: 4443
+          protocol: TCP
+        resources:
+          requests:
+            cpu: 100m
+            memory: 200Mi
+          limits:
+            cpu: 200m
+            memory: 400Mi
+        securityContext:
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          runAsUser: 1000
+        volumeMounts:
+        - mountPath: /tmp
+          name: tmp-dir
+      volumes:
+      - name: tmp-dir
+        emptyDir: {}
+---
+# Service for Metrics Server
+apiVersion: v1
+kind: Service
+metadata:
+  name: metrics-server
+  namespace: upid-monitoring
+  labels:
+    app: metrics-server
+spec:
+  selector:
+    app: metrics-server
+  ports:
+  - port: 443
+    targetPort: 4443
+    protocol: TCP
+---
+# Resource Monitor - Shows high resource usage patterns
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: resource-monitor
+  namespace: upid-monitoring
+  labels:
+    app: resource-monitor
+    tier: monitoring
+    upid.io/cost-monitoring: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: resource-monitor
+  template:
+    metadata:
+      labels:
+        app: resource-monitor
+        tier: monitoring
+    spec:
+      containers:
+      - name: monitor
+        image: python:3.9-slim
+        command: ["python", "-c"]
+        args:
+        - |
+          import time
+          import psutil
+          import os
+          
+          print(f"Resource Monitor started on {os.environ.get('HOSTNAME', 'unknown')}")
+          
+          while True:
+              # Monitor and report resource usage
+              cpu_percent = psutil.cpu_percent(interval=1)
+              memory = psutil.virtual_memory()
+              
+              print(f"CPU Usage: {cpu_percent}%")
+              print(f"Memory Usage: {memory.percent}% ({memory.used/1024/1024:.1f}MB used)")
+              
+              # Simulate some monitoring work
+              time.sleep(30)
+        resources:
+          requests:
+            cpu: 50m
+            memory: 128Mi
+          limits:
+            cpu: 200m
+            memory: 256Mi
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+---
+# Cost Tracking Service
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cost-tracker
+  namespace: upid-monitoring
+  labels:
+    app: cost-tracker
+    tier: monitoring
+    upid.io/business-critical: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cost-tracker
+  template:
+    metadata:
+      labels:
+        app: cost-tracker
+        tier: monitoring
+    spec:
+      containers:
+      - name: cost-tracker
+        image: busybox
+        command: ["sh", "-c"]
+        args:
+        - |
+          echo "Cost Tracking Service started on $(hostname)"
+          
+          # Simulate cost calculation and tracking
+          total_cost=0
+          while true; do
+            # Calculate hourly costs (simulation)
+            hourly_cost=$(( (RANDOM % 100) + 50 ))  # $50-150 per hour
+            total_cost=$(( total_cost + hourly_cost ))
+            
+            echo "Hourly cluster cost: \$${hourly_cost}"
+            echo "Total accumulated cost: \$${total_cost}"
+            echo "Tracking resource usage across all namespaces..."
+            echo "---"
+            
+            sleep 300  # Report every 5 minutes
+          done
+        resources:
+          requests:
+            cpu: 25m
+            memory: 64Mi
+          limits:
+            cpu: 100m
+            memory: 128Mi

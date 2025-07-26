@@ -1,0 +1,171 @@
+---
+# Development Environment - Massively Over-provisioned
+# These workloads demonstrate UPID's ability to detect waste
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-web-app
+  namespace: upid-development
+  labels:
+    app: dev-web-app
+    tier: frontend
+    cost-category: development
+    upid.io/optimization-candidate: "true"
+spec:
+  replicas: 5  # Too many replicas for dev
+  selector:
+    matchLabels:
+      app: dev-web-app
+  template:
+    metadata:
+      labels:
+        app: dev-web-app
+        tier: frontend
+    spec:
+      containers:
+      - name: nginx
+        image: nginx:alpine
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            cpu: 2000m      # Massively over-provisioned
+            memory: 4Gi     # Way too much memory
+          limits:
+            cpu: 4000m
+            memory: 8Gi
+---
+# Development API - Idle but consuming resources
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-api-service
+  namespace: upid-development
+  labels:
+    app: dev-api-service
+    tier: backend
+    cost-category: development
+    upid.io/idle-candidate: "true"
+spec:
+  replicas: 4  # Too many for dev usage
+  selector:
+    matchLabels:
+      app: dev-api-service
+  template:
+    metadata:
+      labels:
+        app: dev-api-service
+        tier: backend
+    spec:
+      containers:
+      - name: api-server
+        image: python:3.9-slim
+        command: ["python", "-c"]
+        args:
+        - |
+          import time
+          import os
+          print(f"Dev API Server started on {os.environ.get('HOSTNAME', 'unknown')}")
+          print("Simulating very low activity development API...")
+          while True:
+              # Very minimal work - perfect candidate for idle detection
+              time.sleep(60)  # Mostly sleeping
+              print("Heartbeat: Still running but doing nothing")
+        ports:
+        - containerPort: 8000
+        resources:
+          requests:
+            cpu: 1000m      # Way over-provisioned for idle workload
+            memory: 2Gi     # Too much memory
+          limits:
+            cpu: 2000m
+            memory: 4Gi
+        env:
+        - name: HOSTNAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+---
+# Development Database - Only used occasionally
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dev-database
+  namespace: upid-development
+  labels:
+    app: dev-database
+    tier: database
+    cost-category: development
+    upid.io/schedule-candidate: "true"
+spec:
+  replicas: 2  # Don't need HA in dev
+  selector:
+    matchLabels:
+      app: dev-database
+  template:
+    metadata:
+      labels:
+        app: dev-database
+        tier: database
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:13-alpine
+        ports:
+        - containerPort: 5432
+        resources:
+          requests:
+            cpu: 1000m      # Over-provisioned for dev DB
+            memory: 4Gi     # Way too much memory
+          limits:
+            cpu: 2000m
+            memory: 8Gi
+        env:
+        - name: POSTGRES_DB
+          value: "dev_db"
+        - name: POSTGRES_USER
+          value: "dev_user"
+        - name: POSTGRES_PASSWORD
+          value: "dev_password"
+---
+# Abandoned Development Service - Should be deleted
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: abandoned-service
+  namespace: upid-development
+  labels:
+    app: abandoned-service
+    tier: experimental
+    cost-category: waste
+    upid.io/deletion-candidate: "true"
+    last-used: "30-days-ago"
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: abandoned-service
+  template:
+    metadata:
+      labels:
+        app: abandoned-service
+        tier: experimental
+    spec:
+      containers:
+      - name: unused-app
+        image: busybox
+        command: ["sh", "-c"]
+        args:
+        - |
+          echo "This service has been abandoned for 30+ days"
+          echo "Perfect candidate for deletion to save costs"
+          while true; do
+            sleep 3600  # Just burning resources
+          done
+        resources:
+          requests:
+            cpu: 500m
+            memory: 1Gi
+          limits:
+            cpu: 1000m
+            memory: 2Gi

@@ -1,0 +1,38 @@
+---
+# UPID Demo Namespaces
+# Creates organized namespaces for different demo scenarios
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: upid-production
+  labels:
+    environment: production
+    cost-center: engineering
+    upid.io/monitoring: enabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: upid-development
+  labels:
+    environment: development
+    cost-center: engineering
+    upid.io/monitoring: enabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: upid-batch
+  labels:
+    environment: batch
+    cost-center: data-science
+    upid.io/monitoring: enabled
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: upid-monitoring
+  labels:
+    environment: infrastructure
+    cost-center: platform
+    upid.io/monitoring: enabled
