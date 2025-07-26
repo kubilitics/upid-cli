@@ -41,7 +41,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: '1.24'
+          go-version: '1.21'
 
       - name: Set up Python
         uses: actions/setup-python@v5
@@ -90,20 +90,22 @@ jobs:
           LDFLAGS="-X main.commit=${COMMIT} -X main.date=${DATE} -s -w"
           
           echo "Building UPID CLI for ${{ matrix.goos }}/${{ matrix.goarch }}..."
-          go build -ldflags "$LDFLAGS" -o "dist/${{ matrix.artifact }}" ./cmd/upid
+          go build -ldflags "$LDFLAGS" -o "${{ matrix.artifact }}" ./cmd/upid
           
           # Make executable (except for Windows)
           if [ "${{ matrix.goos }}" != "windows" ]; then
-            chmod +x "dist/${{ matrix.artifact }}"
+            chmod +x "${{ matrix.artifact }}"
           fi
           
+          # Verify the binary was created
+          ls -la "${{ matrix.artifact }}"
           echo "✅ Built: ${{ matrix.artifact }}"
 
       - name: Upload binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: upid-${{ matrix.goos }}-${{ matrix.goarch }}
-          path: dist/${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
           retention-days: 1
 
   create-release:
@@ -130,7 +132,17 @@ jobs:
       - name: Download all binaries
         uses: actions/download-artifact@v4
         with:
-          path: dist/
+          path: artifacts/
+          
+      - name: Organize binaries
+        run: |
+          # Move artifacts from nested structure to current directory
+          find artifacts/ -name "upid-*" -type f -exec cp {} . \;
+          ls -la upid-*
+          echo "Organized binaries:"
+          for file in upid-*; do
+            echo "  $(basename $file): $(stat -c%s $file 2>/dev/null || stat -f%z $file) bytes"
+          done
 
       - name: Create release notes
         run: |
@@ -202,11 +214,11 @@ jobs:
           draft: false
           prerelease: false
           files: |
-            dist/upid-linux-amd64
-            dist/upid-linux-arm64
-            dist/upid-darwin-amd64
-            dist/upid-darwin-arm64
-            dist/upid-windows-amd64.exe
+            upid-linux-amd64
+            upid-linux-arm64
+            upid-darwin-amd64
+            upid-darwin-arm64
+            upid-windows-amd64.exe
           generate_release_notes: false
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
